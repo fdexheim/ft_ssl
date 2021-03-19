@@ -20,7 +20,12 @@ PATH_LIBFT = ./libft/
 FULL_LIBFT_PATH = $(addprefix $(PATH_LIBFT), $(NAME_LIBFT))
 
 SRC_PATH = ./src/
-SRC_NAME = 	main.c \
+SRC_NAME = 	md5/md5.c \
+			md5/parse_md5.c \
+			sha256/parse_sha256.c \
+			sha256/sha256.c \
+			input.c \
+			main.c \
 			parse_command.c \
 			run_command.c \
 
@@ -41,6 +46,8 @@ libft:
 $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	@echo "\033[1;32;m[$@]\033[0m : " | tr -d '\n'
 	@mkdir $(OBJ_PATH) 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/md5 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/sha256 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/dump 2> /dev/null || echo "" > /dev/null
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 
