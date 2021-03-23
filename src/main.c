@@ -52,5 +52,5 @@ int					main(int argc, char **argv)
 		parse_command(env, &argv[1]);
 	}
 //	run(env);
-//	close_env();
+	close_env(env);
 }

@@ -7,11 +7,8 @@ void						parse_command(t_ssl_env *env, char **args)
 		{ "sha256", sha256_command },
 		{ NULL, NULL }
 	};
-
-	printf("parse_command called\n");
 	uint32_t				index = 0;
 
-	printf("command ptr == %p\n", env->command);
 	while (cmds[index].command_name != NULL)
 	{
 		if (!ft_strcmp(args[0], cmds[index].command_name))
@@ -21,7 +18,6 @@ void						parse_command(t_ssl_env *env, char **args)
 		}
 		index++;
 	}
-	printf("command ptr == %p\n", env->command);
 	if (env->command == NULL)
 	{
 		printf("%s: Error: '%s' is an invalid command\n", env->argv[0],

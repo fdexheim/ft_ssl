@@ -3,8 +3,13 @@
 char			*md5_process_input(char *input)
 {
 	char		*ret;
+	(void)input;
 
-	ret = input;
+	if ((ret = malloc(64)) == NULL)
+	{
+		ft_putstr("[ERROR] malloc failure");
+		exit(EXIT_FAILURE);
+	}
 	return (ret);
 }
 
@@ -13,16 +18,16 @@ void			md5_command(t_ssl_env *env, char **args)
 	char		*input;
 	char		*hashed;
 
-	env->hash_size = 512;
-	hashed = malloc(env->hash_size);
-	ft_bzero(hashed, env->hash_size);
+	env->hash_size = 64;
 	parse_md5(env, args);
-	input = gather_full_input(env, 512);
-
-	ft_putstr("input = \n");
-	write(1, input, env->input_size);
+	input = gather_full_input(env, 64);
 	hashed = md5_process_input(input);
-	ft_putstr("hash  = \n");
-	write(1, hashed, env->hash_size);
+
+//	ft_putstr("input = ");
+//	write(1, input, env->input_size);
+//	ft_putstr("\nhash  = ");
+//	write(1, hashed, env->hash_size);
+//	write(1, "\n", 1);
 	free(input);
+	free(hashed);
 }

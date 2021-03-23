@@ -63,7 +63,7 @@ uint32_t					check_arg_flags(t_ssl_env *env, char **args)
 
 void						parse_md5(t_ssl_env *env, char **args)
 {
-	printf("parse_md5 called\n");
+	printf(">>parse_md5 called\n");
 	(void)env;
 	uint32_t				ret;
 
@@ -74,6 +74,10 @@ void						parse_md5(t_ssl_env *env, char **args)
 		if (ret == 0 && args[i][0] == '-')
 			parse_noargs_flag(env, args[i]);
 		else
+		{
+			if (env->file_path == NULL)
+				env->file_path = args[i];
 			i += ret;
+		}
 	}
 }
