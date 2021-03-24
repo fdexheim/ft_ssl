@@ -1,5 +1,6 @@
 #include "../inc/ft_ssl.h"
 
+//------------------------------------------------------------------------------
 void				list_commands(void)
 {
 	printf("\nStandard commands:\n");
@@ -7,17 +8,20 @@ void				list_commands(void)
 	printf("\nCipher commands:\n");
 }
 
+//------------------------------------------------------------------------------
 void				usage(void)
 {
 	printf("Usage: ./ft_ssl command [command opts] [command args]\n");
 	return ;
 }
 
+//------------------------------------------------------------------------------
 void				close_env(t_ssl_env *env)
 {
 	free(env);
 }
 
+//------------------------------------------------------------------------------
 t_ssl_env			*setup_env(int argc, char **argv)
 {
 	t_ssl_env		*env;
@@ -33,11 +37,13 @@ t_ssl_env			*setup_env(int argc, char **argv)
 	return (env);
 }
 
+//------------------------------------------------------------------------------
 void				stdin_loop_mode(t_ssl_env *env)
 {
 	(void)env;
 }
 
+//------------------------------------------------------------------------------
 int					main(int argc, char **argv)
 {
 	t_ssl_env		*env;

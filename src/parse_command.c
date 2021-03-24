@@ -1,5 +1,6 @@
 #include "../inc/ft_ssl.h"
 
+//------------------------------------------------------------------------------
 void						parse_command(t_ssl_env *env, char **args)
 {
 	const t_ssl_command		cmds[] = {
@@ -25,5 +26,7 @@ void						parse_command(t_ssl_env *env, char **args)
 		usage();
 	}
 	else
+	{
 		env->command(env, args);
+	}
 }

@@ -1,5 +1,6 @@
 #include "../../inc/ft_ssl.h"
 
+//------------------------------------------------------------------------------
 void						parse_noargs_flag(t_ssl_env *env, char *arg)
 {
 	for (uint32_t i = 1; arg[i] != '\0'; i++)
@@ -11,18 +12,21 @@ void						parse_noargs_flag(t_ssl_env *env, char *arg)
 	}
 }
 
+//------------------------------------------------------------------------------
 void						placeholder_handle_flag_a(t_ssl_env *env, char *arg)
 {
 	(void)env;
 	printf("placeholder_handle_flag_a called with arg %s\n", arg);
 }
 
+//------------------------------------------------------------------------------
 void						placeholder_handle_flag_b(t_ssl_env *env, char *arg)
 {
 	(void)env;
 	printf("placeholder_handle_flag_b called with arg %s\n", arg);
 }
 
+//------------------------------------------------------------------------------
 bool						check_nb_args_required(char **args, uint32_t nb_arg)
 {
 	for (uint32_t i = 1; i <= nb_arg; i++)
@@ -34,6 +38,7 @@ bool						check_nb_args_required(char **args, uint32_t nb_arg)
 	return (true);
 }
 
+//------------------------------------------------------------------------------
 uint32_t					check_arg_flags(t_ssl_env *env, char **args)
 {
 	const t_ssl_arg_flags	ssl_arg_flags[] = {
@@ -61,6 +66,7 @@ uint32_t					check_arg_flags(t_ssl_env *env, char **args)
 	return 0;
 }
 
+//------------------------------------------------------------------------------
 void						parse_md5(t_ssl_env *env, char **args)
 {
 	printf(">>parse_md5 called\n");

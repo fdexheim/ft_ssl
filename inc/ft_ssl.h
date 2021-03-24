@@ -8,6 +8,8 @@
 #include <string.h>
 #include "../libft/inc/libft.h"
 
+#define FT_SSL_INPUT_BUFF_SIZE 4096
+
 typedef struct				s_ssl_flags
 {
 	bool					p;
@@ -22,6 +24,7 @@ typedef struct				s_ssl_env
 	char					**argv;
 	t_ssl_flags				flags;
 	size_t					input_size;
+	size_t					allocated_size;
 	size_t					hash_size;
 	char					*file_path;
 	void					(*command)(struct s_ssl_env*, char **);
@@ -39,6 +42,12 @@ typedef struct				s_ssl_command
 	char					*command_name;
 	void					(*command)(t_ssl_env *, char **);
 }							t_ssl_command;
+
+void						dump_buffer(void *buff, size_t size);
+void						buffer_join(void *input, void *add,
+	size_t input_size, size_t add_size);
+void						*bootleg_realloc(void *src, size_t old_size,
+size_t new_size);
 
 void						md5_command(t_ssl_env *env, char **args);
 void						parse_md5(t_ssl_env *env, char **args);
