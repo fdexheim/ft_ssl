@@ -3,64 +3,59 @@
 //------------------------------------------------------------------------------
 void				*pad_buffer_md5(t_ssl_env *env, void *src)
 {
-	size_t			padding_size = 0;
-	const size_t	length_append_size = (64 / 8);
+	size_t			padding_bit_size = 0;
 	size_t			input_size = env->input_size;
+	size_t			length_append_bit_size = 64;
 	unsigned char	*ret;
 	uint64_t		*size_ptr;
 
-	padding_size = input_size % (512 / 8);
-	if (padding_size == 0)
+	padding_bit_size = (input_size * 8) % 512;
+	if (padding_bit_size > 448)
 	{
-		padding_size = (448 / 8);
+		padding_bit_size = 512 - (padding_bit_size - 448);
 	}
-	else if (padding_size < (448 / 8))
-	{
-		padding_size = (448 / 8) - padding_size;
-	}
-	padding_size += length_append_size;
-	printf("input_size = %ld | padding_size = %ld | input + padding = %ld\n",
-		input_size, padding_size, input_size + padding_size);
+	else
+		padding_bit_size = 448 - padding_bit_size;
+	padding_bit_size += length_append_bit_size;
+
+	printf("input_size      = %ld (%ld bits)\npadding_size    = %ld (%ld bits)\ninput + padding = %ld (%ld bits)\n",
+		input_size, input_size * 8, padding_bit_size / 8, padding_bit_size, input_size + padding_bit_size / 8, input_size * 8 + padding_bit_size);
+
 	ret = (unsigned char *)bootleg_realloc(src, input_size, input_size
-		+ padding_size);
-
+		+ padding_bit_size);
 	size_ptr = (uint64_t *)ret;
-	size_ptr[(input_size + padding_size) / 8] = input_size;
-	ret[input_size] = 128; // need to make sure it's in accordance with endianess
-	env->input_size = input_size + padding_size;
-
-	printf("ret = %p | size_ptr = %p\n", ret, size_ptr);
-	for (size_t i = 0; i < (input_size + padding_size) / 8; i++)
-	{
-		printf("%lx ", size_ptr[i]);
-	}
-	printf("\n\n");
-
-
+	ret[input_size] = 128; // adds 0b10000000 at the end of the input
+	size_ptr[((input_size + padding_bit_size / 8) / 8) - 1] = input_size;
+	env->input_size = input_size + padding_bit_size / 8;
 
 	dump_buffer(ret, env->input_size);
-
 	return (ret);
 }
 
 /*
-	note : the values are divided by 8 to give the correct length in BYTES
+	note : the values are divided/multiplied by 8 to get the correct size
+	in either BITS or BYTES
 */
 
 //------------------------------------------------------------------------------
 char			*md5_process_input(char *input)
 {
 	printf(">>md5_process_input called\n");
+//	uint32_t	md_buffer[4] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
+//	uint32_t	md_buffer_save[4] = { 0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210 };
+	uint32_t	test = 0;
 
-	char		*ret;
+	test = md5_f(0x15843902, 0x32146543, 0x34791268);
+
+	printf("\n");
+
+	test = md5_h(0x15843902, 0x32146543, 0x34791268);
+
+	printf("test = %d topkeks\n", test);
+
 	(void)input;
 
-	if ((ret = malloc(64)) == NULL)
-	{
-		ft_putstr("[ERROR] malloc failure");
-		exit(EXIT_FAILURE);
-	}
-	return (ret);
+	return (input);
 }
 
 //------------------------------------------------------------------------------

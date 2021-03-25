@@ -43,6 +43,11 @@ typedef struct				s_ssl_command
 	void					(*command)(t_ssl_env *, char **);
 }							t_ssl_command;
 
+uint32_t					md5_f(uint32_t x, uint32_t y, uint32_t z);
+uint32_t					md5_g(uint32_t x, uint32_t y, uint32_t z);
+uint32_t					md5_h(uint32_t x, uint32_t y, uint32_t z);
+uint32_t					md5_i(uint32_t x, uint32_t y, uint32_t z);
+
 void						dump_buffer(void *buff, size_t size);
 void						buffer_join(void *input, void *add,
 	size_t input_size, size_t add_size);
