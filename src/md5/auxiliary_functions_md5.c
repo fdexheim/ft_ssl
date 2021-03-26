@@ -41,9 +41,15 @@ uint32_t		md5_g(uint32_t x, uint32_t y, uint32_t z) // G(X,Y,Z) = XZ v Y not(Z)
 
 	ret = ((x & z) | (y & (~z)));
 
-	(void)x;
-	(void)y;
-	(void)z;
+	write(1, "x = ", 4);
+	print_bits(x, 32);
+	write(1, "\ny = ", 5);
+	print_bits(y, 32);
+	write(1, "\nz = ", 5);
+	print_bits(z, 32);
+	write(1, "\nret ", 5);
+	print_bits(ret, 32);
+	write(1, "\n", 1);
 
 	return (ret);
 }
@@ -73,9 +79,17 @@ uint32_t		md5_i(uint32_t x, uint32_t y, uint32_t z) // I(X,Y,Z) = X xor (X v not
 {
 	uint32_t	ret = 0;
 
-	(void)x;
-	(void)y;
-	(void)z;
+	ret = y ^ (x | (~z));
+
+	write(1, "x = ", 4);
+	print_bits(x, 32);
+	write(1, "\ny = ", 5);
+	print_bits(y, 32);
+	write(1, "\nz = ", 5);
+	print_bits(z, 32);
+	write(1, "\nret ", 5);
+	print_bits(ret, 32);
+	write(1, "\n", 1);
 
 	return (ret);
 }

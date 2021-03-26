@@ -46,10 +46,13 @@ char			*md5_process_input(char *input)
 	uint32_t	test = 0;
 
 	test = md5_f(0x15843902, 0x32146543, 0x34791268);
-
 	printf("\n");
-
+	test = md5_g(0x15843902, 0x32146543, 0x34791268);
+	printf("\n");
 	test = md5_h(0x15843902, 0x32146543, 0x34791268);
+	printf("\n");
+	test = md5_i(0x15843902, 0x32146543, 0x34791268);
+	printf("\n");
 
 	printf("test = %d topkeks\n", test);
 
