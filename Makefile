@@ -20,9 +20,12 @@ PATH_LIBFT = ./libft/
 FULL_LIBFT_PATH = $(addprefix $(PATH_LIBFT), $(NAME_LIBFT))
 
 SRC_PATH = ./src/
-SRC_NAME = 	md5/md5.c \
+SRC_NAME = 	md5/display_md5.c \
+			md5/md5.c \
 			md5/parse_md5.c \
+			md5/process_block_md5.c \
 			sha256/parse_sha256.c \
+			sha256/process_block_sha256.c \
 			sha256/sha256.c \
 			buffer.c \
 			input.c \
