@@ -25,4 +25,16 @@
 		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 	};
 
+#define ROTL32(word, bits) ((word << bits) | (word >> (32-(bits))))
+#define ROTR32(word, bits) ((word >> bits) | (word << (32-(bits))))
+#define SHL(word, bits) word << bits
+#define SHR(word, bits) word >> bits
+
+#define CH(x, y, z) ((x & y) ^ ((~x) & y))
+#define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+#define BSIG0(x) (ROTR32(x, 2) ^ ROTR32(x, 13) ^ ROTR32(x, 22))
+#define BSIG1(x) (ROTR32(x, 6) ^ ROTR32(x, 11) ^ ROTR32(x, 25))
+#define SSIG0(x) (ROTR32(x, 7) ^ ROTR32(x, 18) ^ SHR(x, 3))
+#define SSIG1(x) (ROTR32(x, 17) ^ ROTR32(x, 19) ^ SHR(x, 10))
+
 #endif

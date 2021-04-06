@@ -49,6 +49,7 @@ typedef struct				s_ssl_arg_flag
 }							t_ssl_arg_flags;
 
 
+void						display_hash(void *buff, size_t size);
 void						dump_buffer(void *buff, size_t size);
 void						buffer_join(void *input, void *add,
 	size_t input_size, size_t add_size);
@@ -62,6 +63,7 @@ void						parse_md5(t_ssl_env *env, char **args);
 void						process_block_md5(uint32_t *block, uint32_t *state);
 
 
+void						display_sha256(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						command_sha256(t_ssl_env *env, char **args);
 void						parse_sha256(t_ssl_env *env, char **args);
 void						process_block_sha256(uint32_t *block, uint32_t *state);

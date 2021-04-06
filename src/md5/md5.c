@@ -36,7 +36,8 @@ char				*process_input_md5(void *input, size_t input_size,
 	uint32_t *state)
 {
 	uint32_t		**blocks;
-	const uint32_t	nb_blocks = input_size / (4 * 16);
+	const uint32_t	block_size = 4 * 16;
+	const uint32_t	nb_blocks = input_size / block_size;
 
 	if ((blocks = malloc(sizeof(uint32_t**) * (nb_blocks + 1))) == NULL)
 	{
@@ -44,9 +45,9 @@ char				*process_input_md5(void *input, size_t input_size,
 		exit(EXIT_FAILURE);
 	}
 	blocks[nb_blocks] = NULL;
-	for (size_t i = 0; i < input_size / 64; i++)
+	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		blocks[i] = input + (i * 64);
+		blocks[i] = input + (i * block_size);
 	}
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
@@ -101,12 +102,9 @@ void				command_md5(t_ssl_env *env, char **args)
 		for (uint32_t i = 0; env->file_args[i] != NULL; i++)
 		{
 			input = gather_full_input(env, env->file_args[i]);
-			if (input != NULL)
-			{
-				input = pad_buffer_md5(env, input);
-				exec_md5(env, input, env->file_args[i], false);
-				free(input);
-			}
+			input = pad_buffer_md5(env, input);
+			exec_md5(env, input, env->file_args[i], false);
+			free(input);
 			env_soft_reset(env);
 		}
 	}

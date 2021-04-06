@@ -1,6 +1,19 @@
 #include "../inc/ft_ssl.h"
 
 //------------------------------------------------------------------------------
+void				display_hash(void *hash, size_t size)
+{
+	unsigned char	*ptr = hash;
+
+	for (uint32_t i = 0; i < size; i++)
+	{
+		if (ptr[i] <= 0xf)
+			write(1, "0", 1);
+		ft_put_size_t_hex(ptr[i]);
+	}
+}
+
+//------------------------------------------------------------------------------
 void				dump_buffer(void *buff, size_t size)
 {
 	unsigned char	*tmp = buff;
