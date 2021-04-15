@@ -25,6 +25,17 @@
 		0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 	}; // precalculated sin values
 
+	static const uint32_t	g_md5_block_index_table[64] = {
+		0, 1, 2, 3, 4, 5, 6, 7,
+		8, 9, 10, 11, 12, 13, 14, 15,
+		1, 6, 11, 0, 5, 10, 15, 4,
+		9, 14, 3, 8, 13, 2, 7, 12,
+		5, 8, 11, 14, 1, 4, 7, 10,
+		13, 0, 3, 6, 9, 12, 15, 2,
+		0, 7, 14, 5, 12, 3, 10, 1,
+		8, 15, 6, 13, 4, 11, 2, 9
+	};
+
 	static const uint32_t	g_md5_shift_table[16] = {
 		7, 12, 17, 22,
 		5, 9, 14, 20,
@@ -38,29 +49,5 @@
 #define I(x, y, z) ((y) ^ ((x) | (~z)))
 
 #define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
-
-#define FF(a, b, c, d, x, s, ac) { \
-(a) += F((b), (c), (d)) + (x) + (uint32_t)(ac); \
-(a) = ROTATE_LEFT((a), (s)); \
-(a) += (b); \
-}
-
-#define GG(a, b, c, d, x, s, ac) { \
-(a) += G((b), (c), (d)) + (x) + (uint32_t)(ac); \
-(a) = ROTATE_LEFT((a), (s)); \
-(a) += (b); \
-}
-
-#define HH(a, b, c, d, x, s, ac) { \
-(a) += H((b), (c), (d)) + (x) + (uint32_t)(ac); \
-(a) = ROTATE_LEFT((a), (s)); \
-(a) += (b); \
-}
-
-#define II(a, b, c, d, x, s, ac) { \
-(a) += I((b), (c), (d)) + (x) + (uint32_t)(ac); \
-(a) = ROTATE_LEFT((a), (s)); \
-(a) += (b); \
-}
 
 #endif

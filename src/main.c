@@ -3,15 +3,18 @@
 //------------------------------------------------------------------------------
 void				list_commands(void)
 {
-	printf("\nStandard commands:\n");
-	printf("\nMessage Digest commands:\n");
-	printf("\nCipher commands:\n");
+	ft_putstr("\nStandard commands:\n");
+	ft_putstr("\nMessage Digest commands:\n");
+	ft_putstr("md5\nsha256\n");
+	ft_putstr("\nCipher commands:\n");
+	ft_putstr("\n");
 }
 
 //------------------------------------------------------------------------------
 void				usage(void)
 {
-	printf("Usage: ./ft_ssl command [command opts] [command args]\n");
+	ft_putstr("Usage: ./ft_ssl command [command opts] [command args]\n");
+	list_commands();
 	return ;
 }
 
@@ -85,4 +88,5 @@ int					main(int argc, char **argv)
 		parse_command(env, &argv[1]);
 	}
 	close_env(env);
+	return (EXIT_SUCCESS);
 }
