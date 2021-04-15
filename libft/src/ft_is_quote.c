@@ -14,7 +14,7 @@
 
 bool				ft_is_quote(char c)
 {
-	if (c == 34 || c == 39)
+	if (c == '\'' || c == '"')
 		return (true);
 	return (false);
 }

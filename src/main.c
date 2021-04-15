@@ -38,9 +38,36 @@ t_ssl_env			*setup_env(int argc, char **argv)
 }
 
 //------------------------------------------------------------------------------
-void				stdin_loop_mode(t_ssl_env *env)
+static void			reset_flags(t_ssl_env *env)
 {
-	(void)env;
+	ft_bzero(&env->flags, sizeof(t_ssl_flags));
+}
+
+//------------------------------------------------------------------------------
+static void			stdin_loop_mode(t_ssl_env *env)
+{
+	char			*input;
+	char			**split_input;
+
+	while (1)
+	{
+		ft_putstr("ft_ssl > ");
+		input = ft_get_full_input();
+		if (input == NULL)
+			return ;
+		input[ft_strlen(input) - 1] = '\0';
+		if (!ft_strcmp(input, "exit"))
+		{
+			free(input);
+			return ;
+		}
+		split_input = ft_tokenizer(input);
+		parse_command(env, split_input);
+		ft_free_string_tab(split_input);
+		free(input);
+		reset_flags(env);
+		env->file_args = NULL;
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -57,6 +84,5 @@ int					main(int argc, char **argv)
 	{
 		parse_command(env, &argv[1]);
 	}
-//	run(env);
 	close_env(env);
 }

@@ -12,22 +12,23 @@
 
 #include "../inc/libft.h"
 
-bool				ft_valid_quote(char *s)
+#include <stdio.h>
+
+char				*ft_valid_quote(char *s)
 {
 	char			quote;
+	char			*ret;
 
 	quote = *s;
 	s += 1;
-	while (*s)
+	while (*s != quote && (*(s + 1) != ' ' || *(s + 1) != '\0'))
 	{
-		if (*s == quote)
-		{
-			if (*(s + 1) == ' ' || *(s + 1) == '\0')
-				return (true);
-			else
-				return (false);
-		}
 		s++;
+		if (*s == '\0')
+		{
+			return (NULL);
+		}
 	}
-	return (true);
+	ret = s;
+	return (ret);
 }

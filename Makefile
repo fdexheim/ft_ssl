@@ -32,7 +32,6 @@ SRC_NAME = 	md5/display_md5.c \
 			input.c \
 			main.c \
 			parse_command.c \
-			run_command.c \
 
 OBJ_PATH = ./obj/
 OBJ_NAME =	$(SRC_NAME:.c=.o)

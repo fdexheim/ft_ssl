@@ -8,13 +8,13 @@
 */
 
 //------------------------------------------------------------------------------
-void				*pad_buffer_sha256(t_ssl_env *env, void *src)
+static void				*pad_buffer_sha256(t_ssl_env *env, void *src)
 {
 	size_t			padding_bit_size = 0;
 	size_t			input_size = env->input_size;
-	size_t			length_append_bit_size = 64;
+	const size_t	length_append_bit_size = 64;
 	unsigned char	*ret;
-	uint64_t		*size_ptr;
+	uint32_t		*ptr;
 
 	padding_bit_size = (input_size * 8) % 512;
 	if (padding_bit_size > 448)
@@ -24,15 +24,22 @@ void				*pad_buffer_sha256(t_ssl_env *env, void *src)
 	padding_bit_size += length_append_bit_size;
 	ret = (unsigned char *)bootleg_realloc(src, input_size, input_size
 		+ padding_bit_size);
-	size_ptr = (uint64_t *)ret;
-	ret[input_size] = 128;
-	size_ptr[((input_size + padding_bit_size / 8) / 8) - 1] = input_size * 8;
+	ret[input_size] = 128; // append 1
+
+	ptr = (uint32_t *)ret;
+	for (uint32_t i = 0; i < (input_size + padding_bit_size) / 4; i++)
+	{
+		ptr[i] = ft_reverse_endianess32(ptr[i]);
+	}
+
+	ptr[((input_size + padding_bit_size / 8) / 4) - 1] = input_size * 8;
+
 	env->input_size = input_size + padding_bit_size / 8;
 	return (ret);
 }
 
 //------------------------------------------------------------------------------
-char				*process_input_sha256(void *input, size_t input_size,
+static char				*process_input_sha256(void *input, size_t input_size,
 	uint32_t *state)
 {
 	uint32_t		**blocks;
@@ -58,7 +65,7 @@ char				*process_input_sha256(void *input, size_t input_size,
 }
 
 //------------------------------------------------------------------------------
-void				exec_sha256(t_ssl_env *env, char *input, char *src, bool string_mode)
+static void				exec_sha256(t_ssl_env *env, char *input, char *src, bool string_mode)
 {
 	uint32_t		state[8] = {
 		0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
@@ -66,7 +73,13 @@ void				exec_sha256(t_ssl_env *env, char *input, char *src, bool string_mode)
 	};
 
 	process_input_sha256(input, env->input_size, state);
+	for (int i = 0; i < 8; i++)
+	{
+		state[i] = ft_reverse_endianess32(state[i]);
+	}
 	display_sha256(env, src, state, string_mode);
+	free(input);
+	env_soft_reset(env);
 }
 
 //------------------------------------------------------------------------------
@@ -84,9 +97,7 @@ void				command_sha256(t_ssl_env *env, char **args)
 		}
 		input = pad_buffer_sha256(env, input);
 		exec_sha256(env, input, NULL, false);
-		free(input);
 	}
-	env_soft_reset(env);
 
 	if (env->flags.s == true)
 	{
@@ -94,9 +105,7 @@ void				command_sha256(t_ssl_env *env, char **args)
 		env->input_size = ft_strlen(input);
 		input = pad_buffer_sha256(env, input);
 		exec_sha256(env, input, env->flags.s_arg, true);
-		free(input);
 	}
-	env_soft_reset(env);
 
 	if (env->file_args != NULL)
 	{
@@ -105,8 +114,6 @@ void				command_sha256(t_ssl_env *env, char **args)
 			input = gather_full_input(env, env->file_args[i]);
 			input = pad_buffer_sha256(env, input);
 			exec_sha256(env, input, env->file_args[i], false);
-			free(input);
-			env_soft_reset(env);
 		}
 	}
 }

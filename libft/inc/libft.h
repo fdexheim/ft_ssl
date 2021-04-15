@@ -37,6 +37,7 @@ size_t			ft_get_string_table_size(char **table);
 int				ft_atoi(char *src);
 bool			ft_directory_exists(char *access);
 void			ft_dump_brute(void *data, uint32_t size);
+void			ft_dump_string_array(char **array);
 bool			ft_file_exists(char *access);
 bool			ft_file_or_directory_exists(char *access);
 bool			ft_is_flag(char *arg);
@@ -51,6 +52,8 @@ void			ft_putchar(const char c);
 void			ft_putnbr_bits(size_t src, const uint8_t bits);
 void			ft_putstr(const char *str);
 void			ft_putstr_endl(const char *str);
+uint32_t		ft_reverse_endianess32(const uint32_t src);
+uint64_t		ft_reverse_endianess64(const uint64_t src);
 void			ft_sort_string_table(char **table);
 int				ft_strcmp(const char *s1, const char *s2);
 char			*ft_strdup(const char *src);
@@ -58,8 +61,9 @@ char			*ft_strjoin(const char *s1, const char *s2);
 size_t			ft_strlen(const char *str);
 int				ft_strncmp(const char *s1, const char *s2, size_t size);
 bool			ft_testbit(uint32_t value, uint8_t bit_number);
+char			**ft_tokenizer(char *src);
 char			*ft_truncated_filename(char *path);
-bool			ft_valid_quote(char *s);
+char			*ft_valid_quote(char *s);
 bool			yes_no_confirm(char *question);
 
 #endif

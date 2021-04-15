@@ -66,6 +66,8 @@ void				exec_md5(t_ssl_env *env, char *input, char *src, bool string_mode)
 
 	process_input_md5(input, env->input_size, state);
 	display_md5(env, src, state, string_mode);
+	free(input);
+	env_soft_reset(env);
 }
 
 //------------------------------------------------------------------------------
@@ -83,9 +85,7 @@ void				command_md5(t_ssl_env *env, char **args)
 		}
 		input = pad_buffer_md5(env, input);
 		exec_md5(env, input, NULL, false);
-		free(input);
 	}
-	env_soft_reset(env);
 
 	if (env->flags.s == true)
 	{
@@ -93,9 +93,7 @@ void				command_md5(t_ssl_env *env, char **args)
 		env->input_size = ft_strlen(input);
 		input = pad_buffer_md5(env, input);
 		exec_md5(env, input, env->flags.s_arg, true);
-		free(input);
 	}
-	env_soft_reset(env);
 
 	if (env->file_args != NULL)
 	{
@@ -104,8 +102,6 @@ void				command_md5(t_ssl_env *env, char **args)
 			input = gather_full_input(env, env->file_args[i]);
 			input = pad_buffer_md5(env, input);
 			exec_md5(env, input, env->file_args[i], false);
-			free(input);
-			env_soft_reset(env);
 		}
 	}
 }

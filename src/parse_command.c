@@ -31,12 +31,14 @@ void						parse_command(t_ssl_env *env, char **args)
 	}
 	if (env->command == NULL)
 	{
-		printf("%s: Error: '%s' is an invalid command\n", env->argv[0],
-			args[0]);
+		ft_putstr("ft_ssl: Error: ");
+		ft_putstr(args[0]);
+		ft_putstr(" is an invalid command\n");
 		usage();
 	}
 	else
 	{
 		env->command(env, args);
+		env->command = NULL;
 	}
 }

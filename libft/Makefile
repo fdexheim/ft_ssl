@@ -15,16 +15,22 @@ NAME =	libft.a
 INCLUDES_PATH = ./inc/
 
 SRC_PATH = ./src/
-SRC_NAME =	argv.c argv2.c ft_atoi.c ft_bzero.c ft_free_string_tab.c ft_get_full_input.c \
+SRC_NAME =	argv.c argv2.c ft_atoi.c ft_bzero.c ft_free_string_tab.c \
+			ft_get_full_input.c \
 			ft_get_string_table_size.c \
-			ft_directory_exists.c ft_dump_brute.c ft_file_exists.c ft_file_or_directory_exists.c \
+			ft_directory_exists.c ft_dump_brute.c ft_dump_string_array.c \
+			ft_file_exists.c \
+			ft_file_or_directory_exists.c \
 			ft_is_flag.c ft_is_quote.c ft_isdigit.c ft_itoa_uint64.c \
 			ft_lowercase.c \
 			ft_put_size_t.c ft_put_size_t_hex.c ft_put_unsigned_char_hex.c \
 			ft_putchar.c ft_putnbr_bits.c ft_putstr.c ft_putstr_endl.c \
+			ft_reverse_endianess32.c \
+			ft_reverse_endianess64.c \
 			ft_sort_string_table.c ft_strcmp.c ft_strdup.c ft_strjoin.c \
 			ft_strlen.c \
-			ft_strncmp.c ft_testbit.c ft_truncated_filename.c \
+			ft_strncmp.c ft_testbit.c ft_tokenizer.c \
+			ft_truncated_filename.c \
 			ft_valid_quote.c \
 
 OBJ_PATH = ./obj/
