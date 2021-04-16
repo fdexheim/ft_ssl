@@ -3,12 +3,12 @@
 //------------------------------------------------------------------------------
 char			*gather_full_input_loop(t_ssl_env *env, int fd)
 {
-	char		*buffer[FT_SSL_INPUT_BUFF_SIZE];
+	char		buffer[FT_SSL_INPUT_BUFF_SIZE];
 	char		*ret = NULL;
 	ssize_t		read_size = 0;
 
 	ft_bzero(buffer, FT_SSL_INPUT_BUFF_SIZE);
-	while ((read_size = read(fd, &buffer, FT_SSL_INPUT_BUFF_SIZE)) > 0)
+	while ((read_size = read(fd, buffer, FT_SSL_INPUT_BUFF_SIZE)) > 0)
 	{
 		if (env->allocated_size < env->input_size + read_size)
 		{

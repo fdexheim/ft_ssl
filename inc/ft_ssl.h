@@ -69,6 +69,12 @@ void						parse_sha256(t_ssl_env *env, char **args);
 void						process_block_sha256(uint32_t *block, uint32_t *state);
 
 
+void						display_sha512(t_ssl_env *env, char *src, void *state, bool string_mode);
+void						command_sha512(t_ssl_env *env, char **args);
+void						parse_sha512(t_ssl_env *env, char **args);
+void						process_block_sha512(uint64_t *block, uint64_t *state);
+
+
 char						*gather_full_input(t_ssl_env *env, char *path);
 void						env_soft_reset(t_ssl_env *env);
 void						usage(void);
@@ -82,6 +88,7 @@ bool						check_nb_args_required(char **args, uint32_t nb_arg);
 static const t_ssl_command		g_commands[] = {
 	{ "md5", command_md5 },
 	{ "sha256", command_sha256 },
+	{ "sha512", command_sha512 },
 	{ NULL, NULL }
 };
 

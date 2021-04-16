@@ -5,7 +5,7 @@ void				list_commands(void)
 {
 	ft_putstr("\nStandard commands:\n");
 	ft_putstr("\nMessage Digest commands:\n");
-	ft_putstr("md5\nsha256\n");
+	ft_putstr("md5\nsha256\nsha512\n");
 	ft_putstr("\nCipher commands:\n");
 	ft_putstr("\n");
 }

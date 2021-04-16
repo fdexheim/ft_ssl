@@ -28,6 +28,10 @@ SRC_NAME = 	md5/display_md5.c \
 			sha256/parse_sha256.c \
 			sha256/process_block_sha256.c \
 			sha256/sha256.c \
+			sha512/display_sha512.c \
+			sha512/parse_sha512.c \
+			sha512/process_block_sha512.c \
+			sha512/sha512.c \
 			buffer.c \
 			input.c \
 			main.c \
@@ -52,6 +56,7 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	@mkdir $(OBJ_PATH) 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/md5 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/sha256 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/sha512 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/dump 2> /dev/null || echo "" > /dev/null
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 
