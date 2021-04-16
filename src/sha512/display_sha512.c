@@ -31,6 +31,10 @@ static void				display_before_sha512(char *src, bool string_mode)
 		ft_putstr(src);
 		ft_putstr(")= ");
 	}
+	else
+	{
+		ft_putstr("(stdin)= ");
+	}
 }
 
 //------------------------------------------------------------------------------

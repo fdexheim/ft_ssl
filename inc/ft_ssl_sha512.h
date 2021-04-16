@@ -49,8 +49,6 @@ static const uint64_t	g_sha512_constant_table[80] = {
 	0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 };
 
-
-
 #define ROTL64(word, bits) ((word << bits) | (word >> (64-(bits))))
 #define ROTR64(word, bits) ((word >> bits) | (word << (64-(bits))))
 #define SHL(word, bits) word << bits
