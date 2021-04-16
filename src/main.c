@@ -51,14 +51,20 @@ static void			stdin_loop_mode(t_ssl_env *env)
 {
 	char			*input;
 	char			**split_input;
+	size_t			input_len;
 
 	while (1)
 	{
 		ft_putstr("ft_ssl > ");
 		input = ft_get_full_input();
-		if (input == NULL)
+		if (input == NULL || (input_len = ft_strlen(input)) == 0)
+		{
+			if (input != NULL)
+				free(input);
 			return ;
-		input[ft_strlen(input) - 1] = '\0';
+		}
+		if (input[input_len - 1] == '\n')
+			input[input_len - 1] = '\0';
 		if (!ft_strcmp(input, "exit"))
 		{
 			free(input);
