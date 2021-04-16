@@ -2,8 +2,11 @@
 # define FT_SSL_SHA512_H
 
 /*
-   Auxiliary functions and constants for computing sha256
-   as described in RFC 6234
+	Auxiliary functions and constants for computing sha256
+	as described in RFC 6234
+
+	Overall similar to sha256 except the constants table consists
+	of 80 64 bits integers
 */
 
 static const uint64_t	g_sha512_constant_table[80] = {
