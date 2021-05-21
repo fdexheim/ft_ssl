@@ -20,7 +20,11 @@ PATH_LIBFT = ./libft/
 FULL_LIBFT_PATH = $(addprefix $(PATH_LIBFT), $(NAME_LIBFT))
 
 SRC_PATH = ./src/
-SRC_NAME = 	md5/display_md5.c \
+SRC_NAME = 	base64/display_base64.c \
+			base64/parse_base64.c \
+			base64/process_block_base64.c \
+			base64/base64.c \
+			md5/display_md5.c \
 			md5/md5.c \
 			md5/parse_md5.c \
 			md5/process_block_md5.c \
@@ -57,6 +61,7 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	@mkdir $(OBJ_PATH)/md5 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/sha256 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/sha512 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/base64 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/dump 2> /dev/null || echo "" > /dev/null
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 

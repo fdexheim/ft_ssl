@@ -3,12 +3,51 @@
 //------------------------------------------------------------------------------
 static void					parse_flag_cluster(t_ssl_env *env, char *arg)
 {
+	(void)env;
 	for (uint32_t i = 1; arg[i] != '\0'; i++)
 	{
-		env->flags.p = arg[i] == 'p' ? true : env->flags.p;
-		env->flags.q = arg[i] == 'q' ? true : env->flags.q;
-		env->flags.r = arg[i] == 'r' ? true : env->flags.r;
+	
 	}
+}
+
+//------------------------------------------------------------------------------
+static void					handle_flag_d(t_ssl_env *env, char **args)
+{
+	(void)args;
+	env->flags.d = true;
+	if (env->flags.e == true)
+	{
+		ft_putstr("[Warning] You've set both encrypt and decrypt flags you dumbass\n");
+		ft_putstr("[Warning] Defaulting to decrypt...\n");
+		env->flags.e = false;
+	}
+}
+
+//------------------------------------------------------------------------------
+static void					handle_flag_e(t_ssl_env *env, char **args)
+{
+	(void)args;
+	env->flags.e = true;
+	if (env->flags.d == true)
+	{
+		ft_putstr("[Warning] You've set both encrypt and decrypt flags you dumbass\n");
+		ft_putstr("[Warning] Defaulting to encrypt...\n");
+		env->flags.d = false;
+	}
+}
+
+//------------------------------------------------------------------------------
+static void					handle_flag_out(t_ssl_env *env, char **args)
+{
+	env->flags.o = true;
+	env->flags.file_arg_out = args[1];
+}
+
+//------------------------------------------------------------------------------
+static void					handle_flag_in(t_ssl_env *env, char **args)
+{
+	env->flags.i = true;
+	env->flags.file_arg = args[1];
 }
 
 //------------------------------------------------------------------------------
@@ -22,7 +61,11 @@ static void					handle_flag_s(t_ssl_env *env, char **args)
 static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 {
 	const t_ssl_arg_flags	ssl_arg_flags[] = {
+		{ "-i", 1, handle_flag_in },
+		{ "-o", 1, handle_flag_out },
 		{ "-s", 1, handle_flag_s },
+		{ "-d", 0, handle_flag_d },
+		{ "-e", 0, handle_flag_e },
 		{ NULL, 0, NULL }
 	};
 
@@ -43,7 +86,7 @@ static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 }
 
 //------------------------------------------------------------------------------
-void						parse_sha256(t_ssl_env *env, char **args)
+void						parse_base64(t_ssl_env *env, char **args)
 {
 	uint32_t				arg_flag_size;
 

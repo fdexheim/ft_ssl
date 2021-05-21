@@ -12,11 +12,17 @@
 
 typedef struct				s_ssl_flags
 {
+	bool					d;
+	bool					e;
 	bool					p;
 	bool					q;
 	bool					r;
 	bool					s;
 	char					*s_arg;
+	bool					i;
+	char					*file_arg;
+	bool					o;
+	char					*file_arg_out;
 }							t_ssl_flags;
 
 
@@ -57,6 +63,12 @@ void						*bootleg_realloc(void *src, size_t old_size,
 size_t new_size);
 
 
+void						display_base64(t_ssl_env *env, char *output);
+void						command_base64(t_ssl_env *env, char **args);
+void						parse_base64(t_ssl_env *env, char **args);
+void						process_block_base64(char *input_block, char *output_block, bool decrypt);
+
+
 void						display_md5(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						command_md5(t_ssl_env *env, char **args);
 void						parse_md5(t_ssl_env *env, char **args);
@@ -89,6 +101,7 @@ static const t_ssl_command		g_commands[] = {
 	{ "md5", command_md5 },
 	{ "sha256", command_sha256 },
 	{ "sha512", command_sha512 },
+	{ "base64", command_base64 },
 	{ NULL, NULL }
 };
 

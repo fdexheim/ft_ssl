@@ -102,10 +102,10 @@ void				command_sha512(t_ssl_env *env, char **args)
 
 	if (env->flags.s == true)
 	{
-		input = ft_strdup(env->flags.s_arg);
+		input = ft_strdup(env->flags.file_arg);
 		env->input_size = ft_strlen(input);
 		input = pad_buffer_sha512(env, input);
-		exec_sha512(env, input, env->flags.s_arg, true);
+		exec_sha512(env, input, env->flags.file_arg, true);
 	}
 
 	if (env->file_args != NULL)

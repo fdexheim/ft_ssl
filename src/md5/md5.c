@@ -8,7 +8,7 @@
 */
 
 //------------------------------------------------------------------------------
-void				*pad_buffer_md5(t_ssl_env *env, void *src)
+static void			*pad_buffer_md5(t_ssl_env *env, void *src)
 {
 	size_t			padding_bit_size = 0;
 	size_t			input_size = env->input_size;
@@ -32,7 +32,7 @@ void				*pad_buffer_md5(t_ssl_env *env, void *src)
 }
 
 //------------------------------------------------------------------------------
-char				*process_input_md5(void *input, size_t input_size,
+static char			*process_input_md5(void *input, size_t input_size,
 	uint32_t *state)
 {
 	uint32_t		**blocks;
@@ -58,7 +58,7 @@ char				*process_input_md5(void *input, size_t input_size,
 }
 
 //------------------------------------------------------------------------------
-void				exec_md5(t_ssl_env *env, char *input, char *src, bool string_mode)
+static void			exec_md5(t_ssl_env *env, char *input, char *src, bool string_mode)
 {
 	uint32_t		state[4] = {
 		0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476

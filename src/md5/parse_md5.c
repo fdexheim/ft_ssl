@@ -1,7 +1,7 @@
 #include "../../inc/ft_ssl.h"
 
 //------------------------------------------------------------------------------
-static void					parse_noargs_flag(t_ssl_env *env, char *arg)
+static void					parse_flag_cluster(t_ssl_env *env, char *arg)
 {
 	for (uint32_t i = 1; arg[i] != '\0'; i++)
 	{
@@ -53,7 +53,7 @@ void						parse_md5(t_ssl_env *env, char **args)
 		if (arg_flag_size == 0)
 		{
 			if (args[i][0] == '-')
-				parse_noargs_flag(env, args[i]);
+				parse_flag_cluster(env, args[i]);
 			else
 			{
 				if (env->file_args == NULL)

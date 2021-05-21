@@ -38,6 +38,7 @@ int				ft_atoi(char *src);
 bool			ft_directory_exists(char *access);
 void			ft_dump_brute(void *data, uint32_t size);
 void			ft_dump_string_array(char **array);
+uint64_t		ft_extract_bits(uint64_t val, uint8_t bit_start, uint8_t bit_end);
 bool			ft_file_exists(char *access);
 bool			ft_file_or_directory_exists(char *access);
 bool			ft_is_flag(char *arg);
