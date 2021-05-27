@@ -1,6 +1,6 @@
 #include "../../inc/ft_ssl.h"
 
-void				write_base64(int fd, char *output)
+void				write_base64(int fd, char *output, bool d)
 {
 	size_t			len;
 	size_t			iter;
@@ -11,13 +11,15 @@ void				write_base64(int fd, char *output)
 	for (size_t i = 0; i < iter; i++)
 	{
 		write(fd, output, 64);
-		write(fd, "\n", 1);
+		if (d == false)
+			write(fd, "\n", 1);
 		output += 64;
 	}
 	if ((len = ft_strlen(output)) > 0)
 	{
 		write(fd, output, len);
-		write(fd, "\n", 1);
+		if (d == false)
+			write(fd, "\n", 1);
 	}
 }
 
@@ -28,7 +30,7 @@ void				display_base64(t_ssl_env *env, char *output)
 
 	if (env->flags.o == true)
 	{
-		fd = open(env->flags.file_arg_out, O_WRONLY | O_CREAT, 0664);
+		fd = open(env->flags.file_arg_out, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 		if (fd < 0)
 		{
 			ft_putstr("Cannot access file output '");
@@ -36,10 +38,10 @@ void				display_base64(t_ssl_env *env, char *output)
 			ft_putstr("'\n");
 			return ;
 		}
-		write_base64(fd, output);
+		write_base64(fd, output, env->flags.d);
 	}
 	else
 	{
-		write_base64(1, output);
+		write_base64(1, output, env->flags.d);
 	}
 }
