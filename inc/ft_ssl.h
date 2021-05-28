@@ -63,10 +63,10 @@ void						*bootleg_realloc(void *src, size_t old_size,
 size_t new_size);
 
 
-void						display_base64(t_ssl_env *env, char *output);
+void						display_base64(t_ssl_env *env, char *output, size_t output_size);
 void						command_base64(t_ssl_env *env, char **args);
 void						parse_base64(t_ssl_env *env, char **args);
-void						process_block_base64(char *input_block, char *output_block, bool decrypt);
+void						process_block_base64(char *input_block, char *output_block, bool decrypt, size_t pad_size);
 
 
 void						display_md5(t_ssl_env *env, char *src, void *state, bool string_mode);

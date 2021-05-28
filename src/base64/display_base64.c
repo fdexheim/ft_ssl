@@ -1,12 +1,8 @@
 #include "../../inc/ft_ssl.h"
 
-void				write_base64(int fd, char *output, bool d)
+void				write_base64(int fd, char *output, bool d, size_t output_size)
 {
-	size_t			len;
-	size_t			iter;
-
-	len = ft_strlen(output);
-	iter = len / 64;
+	size_t			iter = output_size / 64;
 
 	for (size_t i = 0; i < iter; i++)
 	{
@@ -15,16 +11,16 @@ void				write_base64(int fd, char *output, bool d)
 			write(fd, "\n", 1);
 		output += 64;
 	}
-	if ((len = ft_strlen(output)) > 0)
+	if (output_size % 64 > 0)
 	{
-		write(fd, output, len);
+		write(fd, output, output_size % 64);
 		if (d == false)
 			write(fd, "\n", 1);
 	}
 }
 
 //------------------------------------------------------------------------------
-void				display_base64(t_ssl_env *env, char *output)
+void				display_base64(t_ssl_env *env, char *output, size_t output_size)
 {
 	int				fd;
 
@@ -38,10 +34,10 @@ void				display_base64(t_ssl_env *env, char *output)
 			ft_putstr("'\n");
 			return ;
 		}
-		write_base64(fd, output, env->flags.d);
+		write_base64(fd, output, env->flags.d, output_size);
 	}
 	else
 	{
-		write_base64(1, output, env->flags.d);
+		write_base64(1, output, env->flags.d, output_size);
 	}
 }
