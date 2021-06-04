@@ -52,9 +52,16 @@ static const uint64_t	g_sha512_constant_table[80] = {
 	0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 };
 
+
 #define ROTL64(word, bits) ((word << bits) | (word >> (64-(bits))))
 #define ROTR64(word, bits) ((word >> bits) | (word << (64-(bits))))
 #define SHL(word, bits) word << bits
 #define SHR(word, bits) word >> bits
+
+
+void						display_sha512(t_ssl_env *env, char *src, void *state, bool string_mode);
+void						parse_sha512(t_ssl_env *env, char **args);
+void						process_block_sha512(uint64_t *block, uint64_t *state);
+
 
 #endif

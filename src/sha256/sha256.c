@@ -1,4 +1,5 @@
 #include "../../inc/ft_ssl.h"
+#include "../../inc/ft_ssl_sha256.h"
 
 /*
 	note : the values are divided/multiplied by 8 to get the correct size

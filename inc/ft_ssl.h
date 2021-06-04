@@ -63,28 +63,11 @@ void						*bootleg_realloc(void *src, size_t old_size,
 size_t new_size);
 
 
-void						display_base64(t_ssl_env *env, char *output, size_t output_size);
 void						command_base64(t_ssl_env *env, char **args);
-void						parse_base64(t_ssl_env *env, char **args);
-void						process_block_base64(char *input_block, char *output_block, bool decrypt, size_t pad_size);
-
-
-void						display_md5(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						command_md5(t_ssl_env *env, char **args);
-void						parse_md5(t_ssl_env *env, char **args);
-void						process_block_md5(uint32_t *block, uint32_t *state);
-
-
-void						display_sha256(t_ssl_env *env, char *src, void *state, bool string_mode);
+void						command_sha224(t_ssl_env *env, char **args);
 void						command_sha256(t_ssl_env *env, char **args);
-void						parse_sha256(t_ssl_env *env, char **args);
-void						process_block_sha256(uint32_t *block, uint32_t *state);
-
-
-void						display_sha512(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						command_sha512(t_ssl_env *env, char **args);
-void						parse_sha512(t_ssl_env *env, char **args);
-void						process_block_sha512(uint64_t *block, uint64_t *state);
 
 
 char						*gather_full_input(t_ssl_env *env, char *path);
@@ -99,6 +82,7 @@ bool						check_nb_args_required(char **args, uint32_t nb_arg);
 
 static const t_ssl_command		g_commands[] = {
 	{ "md5", command_md5 },
+	{ "sha224", command_sha224 },
 	{ "sha256", command_sha256 },
 	{ "sha512", command_sha512 },
 	{ "base64", command_base64 },

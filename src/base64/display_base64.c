@@ -1,5 +1,6 @@
 #include "../../inc/ft_ssl.h"
 
+//------------------------------------------------------------------------------
 void				write_base64(int fd, char *output, bool d, size_t output_size)
 {
 	size_t			iter = output_size / 64;

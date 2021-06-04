@@ -1,14 +1,6 @@
 #include "../../inc/ft_ssl.h"
 #include "../../inc/ft_ssl_base64.h"
 
-/*
-//------------------------------------------------------------------------------
-static void			unset_bit(uint8_t *src, uint8_t bit_number)
-{
-	*src &= ~(1UL << bit_number);
-}
-*/
-
 //------------------------------------------------------------------------------
 static char			translate(char value)
 {
@@ -32,29 +24,29 @@ static void			process_block_base64_encrypt(char *input_block, char *output_block
 	uint64_t		value2;
 	uint64_t		sum;
 
-	// output_block[0]
+	/* output_block[0] */
 	value1 = ft_extract_bits(input_block[0], 2, 7);
 	sum = value1;
 	output_block[0] = g_base64_table[sum];
 
-	// output_block[1]
+	/* output_block[1] */
 	value1 = ft_extract_bits(input_block[0], 0, 1);
 	value2 = ft_extract_bits(input_block[1], 4, 7);
 	sum = value2 + (SHL(value1, 4));
 	output_block[1] = g_base64_table[sum];
 
-	// output_block[2]
+	/* output_block[2] */
 	value1 = ft_extract_bits(input_block[1], 0, 3);
 	value2 = ft_extract_bits(input_block[2], 6, 7);
 	sum = value2 + (SHL(value1, 2));
 	output_block[2] = g_base64_table[sum];
 
-	// output_block[3]
+	/* output_block[3] */
 	value1 = ft_extract_bits(input_block[2], 0, 5);
 	sum = value1;
 	output_block[3] = g_base64_table[sum];
 
-	//	Padding handling
+	/*	Padding handling */
 	if (pad_size > 0)
 	{
 		if (pad_size > 1)
@@ -79,17 +71,17 @@ static void			process_block_base64_decrypt(char *input_block, char *output_block
 			buf[i] = '\0';
 	}
 
-	// output_block[0]
+	/* output_block[0] */
 	value1 = (SHL(buf[0], 2));
 	value2 = (SHR((buf[1] & 0x30), 4));
 	output_block[0] = value1 + value2;
 
-	// output_block[1]
+	/* output_block[1] */
 	value1 = (SHL((buf[1] & 0xf), 4));
 	value2 = (SHR((buf[2] & 0x3c), 2));
 	output_block[1] = value1 + value2;
 
-	// output_block[2]
+	/* output_block[2] */
 	value1 = (SHL((buf[2] & 0x3), 6));
 	value2 = buf[3];
 	output_block[2] = value1 + value2;

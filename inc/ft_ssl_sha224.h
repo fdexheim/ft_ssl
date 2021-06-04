@@ -2,11 +2,11 @@
 # define FT_SSL_SHA256_H
 
 /*
-	Auxiliary functions and constants for computing sha256
+	Auxiliary functions and constants for computing sha224
 	as described in RFC 6234
 */
 
-	static const uint32_t	g_sha256_cube_root_table[64] = {
+	static const uint32_t	g_sha224_cube_root_table[64] = {
 		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
 		0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
 		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
@@ -32,9 +32,9 @@
 #define SHR(word, bits) word >> bits
 
 
-void						display_sha256(t_ssl_env *env, char *src, void *state, bool string_mode);
-void						parse_sha256(t_ssl_env *env, char **args);
-void						process_block_sha256(uint32_t *block, uint32_t *state);
+void						display_sha224(t_ssl_env *env, char *src, void *state, bool string_mode);
+void						parse_sha224(t_ssl_env *env, char **args);
+void						process_block_sha224(uint32_t *block, uint32_t *state);
 
 
 #endif

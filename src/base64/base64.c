@@ -1,4 +1,5 @@
 #include "../../inc/ft_ssl.h"
+#include "../../inc/ft_ssl_base64.h"
 
 //------------------------------------------------------------------------------
 static void				*pad_buffer_base64(t_ssl_env *env, void *src)
