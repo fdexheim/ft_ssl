@@ -1,5 +1,5 @@
-#ifndef FT_SSL_SHA256_H
-# define FT_SSL_SHA256_H
+#ifndef FT_SSL_SHA224_H
+# define FT_SSL_SHA224_H
 
 /*
 	Auxiliary functions and constants for computing sha224
@@ -32,7 +32,6 @@
 #define SHR(word, bits) word >> bits
 
 
-void						display_sha224(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						parse_sha224(t_ssl_env *env, char **args);
 void						process_block_sha224(uint32_t *block, uint32_t *state);
 

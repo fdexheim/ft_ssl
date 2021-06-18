@@ -1,38 +1,34 @@
 #include "../inc/ft_ssl.h"
 
 //------------------------------------------------------------------------------
-char			*gather_full_input_loop(t_ssl_env *env, int fd)
+void			gather_full_input_loop(t_ssl_data *input, int fd)
 {
 	char		buffer[FT_SSL_INPUT_BUFF_SIZE];
-	char		*ret = NULL;
 	ssize_t		read_size = 0;
 
 	ft_bzero(buffer, FT_SSL_INPUT_BUFF_SIZE);
 	while ((read_size = read(fd, buffer, FT_SSL_INPUT_BUFF_SIZE)) > 0)
 	{
-		if (env->allocated_size < env->input_size + read_size)
+		if (input->allocated_size < input->size + read_size)
 		{
-			while (env->allocated_size < env->input_size + read_size)
-				env->allocated_size += FT_SSL_INPUT_BUFF_SIZE;
-			ret = bootleg_realloc(ret, env->input_size, env->allocated_size);
+			while (input->allocated_size < input->size + read_size)
+				input->allocated_size += FT_SSL_INPUT_BUFF_SIZE;
+			input->data = bootleg_realloc(input->data, input->size, input->allocated_size);
 		}
-		buffer_join(ret, buffer, env->input_size, read_size);
-		env->input_size += read_size;
+		buffer_join(input->data, buffer, input->size, read_size);
+		input->size += read_size;
 		ft_bzero(buffer, FT_SSL_INPUT_BUFF_SIZE);
 	}
-	return (ret);
 }
 
 //------------------------------------------------------------------------------
-char			*gather_full_input(t_ssl_env *env, char *path)
+void			gather_full_input(t_ssl_data *input, char *path)
 {
-	char		*ret;
 	int			fd;
 
-	ret = NULL;
 	if (path == NULL)
 	{
-		ret = gather_full_input_loop(env, 0);
+		gather_full_input_loop(input, 0);
 	}
 	else
 	{
@@ -41,17 +37,19 @@ char			*gather_full_input(t_ssl_env *env, char *path)
 			ft_putstr("[ERROR] Failed to open file '");
 			ft_putstr(path);
 			ft_putstr("'\n");
-			return (NULL);
+			return ;
 		}
-		ret = gather_full_input_loop(env, fd);
+		gather_full_input_loop(input, fd);
 		close(fd);
 	}
-	return (ret);
 }
 
 //------------------------------------------------------------------------------
-void				env_soft_reset(t_ssl_env *env)
+void				data_soft_reset(t_ssl_data *data)
 {
-	env->input_size = 0;
-	env->allocated_size = 0;
+	if (data->data != NULL && data->allocated_size > 0)
+		free(data);
+	data->size = 0;
+	data->allocated_size = 0;
+	data->data = NULL;
 }

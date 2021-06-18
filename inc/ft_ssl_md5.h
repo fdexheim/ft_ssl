@@ -51,7 +51,6 @@
 #define ROTATE_LEFT(x, n) (((x) << (n)) | ((x) >> (32-(n))))
 
 
-void						display_md5(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						parse_md5(t_ssl_env *env, char **args);
 void						process_block_md5(uint32_t *block, uint32_t *state);
 

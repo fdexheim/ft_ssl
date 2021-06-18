@@ -2,109 +2,152 @@
 #include "../../inc/ft_ssl_base64.h"
 
 //------------------------------------------------------------------------------
-static void				*pad_buffer_base64(t_ssl_env *env, void *src)
+static void			write_base64(int fd, char *output, bool d, size_t output_size)
 {
-	char				*ret;
-	size_t				new_size;
-	size_t				block_size = env->flags.d == true ? 4 : 3;
+	size_t			iter = output_size / 64;
 
-	new_size = env->input_size + block_size;
-	ret = bootleg_realloc(src, env->input_size, new_size + 1);
-	ret[new_size] = '\0';
-	if (env->flags.d == true)
+	for (size_t i = 0; i < iter; i++)
+	{
+		write(fd, output, 64);
+		if (d == false)
+			write(fd, "\n", 1);
+		output += 64;
+	}
+	if (output_size % 64 > 0)
+	{
+		write(fd, output, output_size % 64);
+		if (d == false)
+			write(fd, "\n", 1);
+	}
+}
+
+//------------------------------------------------------------------------------
+static void			display_base64(t_ssl_env *env, t_ssl_data *output)
+{
+	int				fd;
+
+	if (env->flags.o == true)
+	{
+		fd = open(env->flags.file_arg_out, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		if (fd < 0)
+		{
+			ft_putstr("Cannot access file output '");
+			ft_putstr(env->flags.file_arg_out);
+			ft_putstr("'\n");
+			return ;
+		}
+		write_base64(fd, output->data, env->flags.d, output->size);
+	}
+	else
+	{
+		write_base64(1, output->data, env->flags.d, output->size);
+	}
+}
+
+//------------------------------------------------------------------------------
+static void				pad_buffer_base64(t_ssl_data *data, bool decrypt)
+{
+	size_t				new_size;
+	const size_t		block_size = decrypt == true ? 4 : 3;
+	char				*append_ptr;
+
+	new_size = data->size + block_size;
+	data->data = bootleg_realloc(data->data, data->size, new_size + 1);
+	append_ptr = (char *)data->data;
+	append_ptr[new_size] = '\0';
+	data->allocated_size = new_size + 1;
+	if (decrypt == true)
 	{
 		char		*file_ret;
 		size_t		j = 0;
 
-		if ((file_ret = malloc(env->input_size + block_size)) == NULL)
+		if ((file_ret = malloc(data->size + block_size)) == NULL)
 		{
 			ft_putstr("[Error] Malloc failure\n");
 			exit(EXIT_FAILURE);
 		}
-		ft_bzero(file_ret, env->input_size);
-		for (size_t i = 0; i < env->input_size; i++)
+		data->allocated_size = data->size + block_size;
+		ft_bzero(file_ret, data->size);
+		for (size_t i = 0; i < data->size; i++)
 		{
-			if (ret[i] != '\n')
+			if (append_ptr[i] != '\n')
 			{
-				file_ret[j] = ret[i];
+				file_ret[j] = append_ptr[i];
 				j++;
 			}
 		}
-		env->input_size = j;
-		free(ret);
-		return (file_ret);
+		free(data->data);
+		data->data = file_ret;
+		data->size = j;
 	}
-	return (ret);
 }
 
 //------------------------------------------------------------------------------
-static char				*process_input_base64(t_ssl_env *env, void *input, size_t input_size, bool decrypt)
+void					process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decrypt)
 {
 	const size_t		block_size = decrypt == true ? 4 : 3;
 	const size_t		output_block_size = decrypt == true ? 3 : 4;
-	const size_t		pad_size = input_size % block_size == 0 ?
-		0 : block_size - (input_size % block_size);
-	const size_t		nb_blocks = pad_size == 0 ? input_size / block_size : (input_size / block_size) + 1;
-	size_t				output_size = nb_blocks * output_block_size;
-	char				*output;
+	const size_t		pad_size = input->size % block_size == 0 ?
+		0 : block_size - (input->size % block_size);
+	const size_t		nb_blocks = pad_size == 0 ? input->size / block_size : (input->size / block_size) + 1;
 
-	if ((output = malloc(output_size + 1)) == NULL)
+	output->size = nb_blocks * output_block_size;
+	if ((output->data = malloc(output->size + 1)) == NULL)
 	{
 		ft_putstr("[Error] Malloc failure\n");
 		exit(EXIT_FAILURE);
 	}
-	ft_bzero(output, output_size + 1);
+	output->allocated_size = output->size + 1;
+	ft_bzero(output, output->size + 1);
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
 		if (i == nb_blocks - 1)
 		{
 			if (decrypt == true)
 			{
-				char		*ptr = input + (i * block_size);
+				char		*ptr = input->data + (i * block_size);
 				if (ptr[3] == '=')
-					output_size--;
+					output->size--;
 				if (ptr[2] == '=')
-					output_size--;
+					output->size--;
 			}
-			process_block_base64(input + (i * block_size), output + (i * output_block_size), decrypt, pad_size);
+			process_block_base64(input->data + (i * block_size), output->data + (i * output_block_size), decrypt, pad_size);
 		}
 		else
 		{
-			process_block_base64(input + (i * block_size), output + (i * output_block_size), decrypt, 0);
+			process_block_base64(input->data + (i * block_size), output->data + (i * output_block_size), decrypt, 0);
 		}
 	}
-	display_base64(env, output, output_size);
-	return (output);
-}
-
-//------------------------------------------------------------------------------
-static void			exec_base64(t_ssl_env *env, char *input)
-{
-	char			*output;
-
-	output = process_input_base64(env, input, env->input_size, env->flags.d);
-	free(input);
-	free(output);
-	env_soft_reset(env);
 }
 
 //------------------------------------------------------------------------------
 void				command_base64(t_ssl_env *env, char **args)
 {
-	char			*input;
+	t_ssl_data		*input;
+	t_ssl_data		*output;
 
 	parse_base64(env, args);
+	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
+	{
+		ft_putstr("Bad malloc()\n");
+		exit(EXIT_FAILURE);
+	}
+	ft_bzero(input, sizeof(t_ssl_data));
+	ft_bzero(output, sizeof(t_ssl_data));
+
 	if (env->flags.i == true)
 	{
-		input = gather_full_input(env, env->flags.file_arg);
+		gather_full_input(input, env->flags.file_arg);
 	}
 	else if (env->flags.s == true)
 	{
-		input = ft_strdup(env->flags.s_arg);
-		env->input_size = ft_strlen(input);
+		input->data = ft_strdup(env->flags.s_arg);
+		input->size = ft_strlen(input->data);
+		input->allocated_size = input->size + 1;
 	}
 	else
-		input = gather_full_input(env, NULL);
-	input = pad_buffer_base64(env, input);
-	exec_base64(env, input);
+		gather_full_input(input, NULL);
+	pad_buffer_base64(input, env->flags.d);
+	process_input_base64(input, output, env->flags.d);
+	display_base64(env, output);
 }

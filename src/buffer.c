@@ -1,19 +1,6 @@
 #include "../inc/ft_ssl.h"
 
 //------------------------------------------------------------------------------
-void				display_hash(void *hash, size_t size)
-{
-	unsigned char	*ptr = hash;
-
-	for (uint32_t i = 0; i < size; i++)
-	{
-		if (ptr[i] <= 0xf)
-			write(1, "0", 1);
-		ft_put_size_t_hex(ptr[i]);
-	}
-}
-
-//------------------------------------------------------------------------------
 void				dump_buffer(void *buff, size_t size)
 {
 	unsigned char	*tmp = buff;
@@ -41,6 +28,20 @@ void				buffer_join(void *input, void *add, size_t input_size,
 	{
 		input_ptr[input_size + i] = add_ptr[i];
 	}
+}
+
+//------------------------------------------------------------------------------
+void				*memdup(void *src, size_t size)
+{
+	unsigned char	*ret;
+
+	if ((ret = malloc(size)) == NULL)
+	{
+		ft_putstr("Bad malloc in memdup\n");
+		exit(EXIT_FAILURE);
+	}
+	ft_memcpy(ret, src, size);
+	return (ret);
 }
 
 //------------------------------------------------------------------------------

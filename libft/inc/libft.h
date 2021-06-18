@@ -46,6 +46,7 @@ bool			ft_is_quote(char c);
 bool			ft_isdigit(int c);
 char			*ft_itoa_uint64(uint64_t src);
 char			ft_lowercase(const char c);
+void			*ft_memcpy(void *dest, const void *src, size_t n);
 void			ft_put_size_t(const size_t src);
 void			ft_put_size_t_hex(const size_t src);
 void			ft_put_unsigned_char_hex(const unsigned char c);

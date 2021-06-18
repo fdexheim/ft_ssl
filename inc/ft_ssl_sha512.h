@@ -59,7 +59,6 @@ static const uint64_t	g_sha512_constant_table[80] = {
 #define SHR(word, bits) word >> bits
 
 
-void						display_sha512(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						parse_sha512(t_ssl_env *env, char **args);
 void						process_block_sha512(uint64_t *block, uint64_t *state);
 

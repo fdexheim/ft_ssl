@@ -7,7 +7,7 @@ void				list_commands(void)
 	ft_putstr("\nMessage Digest commands:\n");
 	ft_putstr("md5\nsha224\nsha256\nsha512\n");
 	ft_putstr("\nCipher commands:\n");
-	ft_putstr("\n");
+	ft_putstr("base64\n");
 }
 
 //------------------------------------------------------------------------------

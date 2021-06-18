@@ -32,7 +32,6 @@
 #define SHR(word, bits) word >> bits
 
 
-void						display_sha256(t_ssl_env *env, char *src, void *state, bool string_mode);
 void						parse_sha256(t_ssl_env *env, char **args);
 void						process_block_sha256(uint32_t *block, uint32_t *state);
 

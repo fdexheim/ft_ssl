@@ -12,9 +12,13 @@
 
 typedef struct				s_ssl_flags
 {
+	bool					a;
 	bool					d;
 	bool					e;
+	bool					k;
+	char					*k_arg;
 	bool					p;
+	char					*p_arg;
 	bool					q;
 	bool					r;
 	bool					s;
@@ -23,6 +27,8 @@ typedef struct				s_ssl_flags
 	char					*file_arg;
 	bool					o;
 	char					*file_arg_out;
+	bool					v;
+	char					*v_arg;
 }							t_ssl_flags;
 
 
@@ -40,6 +46,14 @@ typedef struct				s_ssl_env
 }							t_ssl_env;
 
 
+typedef struct				s_ssl_data
+{
+	void					*data;
+	size_t					size;
+	size_t					allocated_size;
+}							t_ssl_data;
+
+
 typedef struct				s_ssl_command
 {
 	char					*command_name;
@@ -55,23 +69,27 @@ typedef struct				s_ssl_arg_flag
 }							t_ssl_arg_flags;
 
 
-void						display_hash(void *buff, size_t size);
+void						display_hash(t_ssl_env *env, char *src, char *hash_name,
+	t_ssl_data *output, bool string_mode);
 void						dump_buffer(void *buff, size_t size);
 void						buffer_join(void *input, void *add,
 	size_t input_size, size_t add_size);
+void						*memdup(void *src, size_t size);
 void						*bootleg_realloc(void *src, size_t old_size,
 size_t new_size);
 
 
 void						command_base64(t_ssl_env *env, char **args);
+void						command_des(t_ssl_env *env, char **args);
 void						command_md5(t_ssl_env *env, char **args);
+void						process_input_md5(t_ssl_data *input, t_ssl_data *output);
 void						command_sha224(t_ssl_env *env, char **args);
 void						command_sha256(t_ssl_env *env, char **args);
 void						command_sha512(t_ssl_env *env, char **args);
 
 
-char						*gather_full_input(t_ssl_env *env, char *path);
-void						env_soft_reset(t_ssl_env *env);
+void						gather_full_input(t_ssl_data *input, char *path);
+void						data_soft_reset(t_ssl_data *data);
 void						usage(void);
 void						close_env(t_ssl_env *env);
 
@@ -86,6 +104,7 @@ static const t_ssl_command		g_commands[] = {
 	{ "sha256", command_sha256 },
 	{ "sha512", command_sha512 },
 	{ "base64", command_base64 },
+//	{ "des", command_des },
 	{ NULL, NULL }
 };
 

@@ -20,30 +20,30 @@ PATH_LIBFT = ./libft/
 FULL_LIBFT_PATH = $(addprefix $(PATH_LIBFT), $(NAME_LIBFT))
 
 SRC_PATH = ./src/
-SRC_NAME = 	base64/display_base64.c \
-			base64/parse_base64.c \
+SRC_NAME = 	base64/parse_base64.c \
 			base64/process_block_base64.c \
 			base64/base64.c \
-			md5/display_md5.c \
 			md5/md5.c \
 			md5/parse_md5.c \
 			md5/process_block_md5.c \
-			sha224/display_sha224.c \
 			sha224/parse_sha224.c \
 			sha224/process_block_sha224.c \
 			sha224/sha224.c \
-			sha256/display_sha256.c \
 			sha256/parse_sha256.c \
 			sha256/process_block_sha256.c \
 			sha256/sha256.c \
-			sha512/display_sha512.c \
 			sha512/parse_sha512.c \
 			sha512/process_block_sha512.c \
 			sha512/sha512.c \
 			buffer.c \
 			input.c \
 			main.c \
+			output.c \
 			parse_command.c \
+
+
+#			des/des.c \#
+#			des/parse_des.c \#
 
 OBJ_PATH = ./obj/
 OBJ_NAME =	$(SRC_NAME:.c=.o)
@@ -62,11 +62,12 @@ libft:
 $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	@echo "\033[1;32;m[$@]\033[0m : " | tr -d '\n'
 	@mkdir $(OBJ_PATH) 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/base64 2> /dev/null || echo "" > /dev/null
+	@mkdir $(OBJ_PATH)/des 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/md5 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/sha224 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/sha256 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/sha512 2> /dev/null || echo "" > /dev/null
-	@mkdir $(OBJ_PATH)/base64 2> /dev/null || echo "" > /dev/null
 	@mkdir $(OBJ_PATH)/dump 2> /dev/null || echo "" > /dev/null
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 
