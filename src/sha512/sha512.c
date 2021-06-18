@@ -62,12 +62,6 @@ void				process_input_sha512(t_ssl_data *input, t_ssl_data *output)
 	output->size = state_size;
 	ft_memcpy(output->data, state, state_size);
 
-
-	dump_buffer(input->data, input->size);
-	ft_putstr("\n");
-	dump_buffer(output->data, output->size);
-	ft_putstr("\n");
-
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
 		process_block_sha512(input->data + (i * block_size), output->data);
@@ -78,14 +72,6 @@ void				process_input_sha512(t_ssl_data *input, t_ssl_data *output)
 	{
 		ptr[i] = ft_reverse_endianess64(ptr[i]);
 	}
-
-
-
-	dump_buffer(input->data, input->size);
-	ft_putstr("\n");
-	dump_buffer(output->data, output->size);
-	ft_putstr("\n");
-
 }
 
 //------------------------------------------------------------------------------

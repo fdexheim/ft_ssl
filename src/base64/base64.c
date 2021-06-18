@@ -89,7 +89,8 @@ void					process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decryp
 	const size_t		output_block_size = decrypt == true ? 3 : 4;
 	const size_t		pad_size = input->size % block_size == 0 ?
 		0 : block_size - (input->size % block_size);
-	const size_t		nb_blocks = pad_size == 0 ? input->size / block_size : (input->size / block_size) + 1;
+	const size_t		nb_blocks = pad_size == 0 ?
+		input->size / block_size : (input->size / block_size) + 1;
 
 	output->size = nb_blocks * output_block_size;
 	if ((output->data = malloc(output->size + 1)) == NULL)
@@ -98,7 +99,8 @@ void					process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decryp
 		exit(EXIT_FAILURE);
 	}
 	output->allocated_size = output->size + 1;
-	ft_bzero(output, output->size + 1);
+	ft_bzero(output->data, output->size + 1);
+
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
 		if (i == nb_blocks - 1)
@@ -111,11 +113,13 @@ void					process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decryp
 				if (ptr[2] == '=')
 					output->size--;
 			}
-			process_block_base64(input->data + (i * block_size), output->data + (i * output_block_size), decrypt, pad_size);
+			process_block_base64(input->data + (i * block_size),
+				output->data + (i * output_block_size), decrypt, pad_size);
 		}
 		else
 		{
-			process_block_base64(input->data + (i * block_size), output->data + (i * output_block_size), decrypt, 0);
+			process_block_base64(input->data + (i * block_size),
+				output->data + (i * output_block_size), decrypt, 0);
 		}
 	}
 }
@@ -129,7 +133,7 @@ void				command_base64(t_ssl_env *env, char **args)
 	parse_base64(env, args);
 	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
 	{
-		ft_putstr("Bad malloc()\n");
+		ft_putstr("[Error] Bad malloc()\n");
 		exit(EXIT_FAILURE);
 	}
 	ft_bzero(input, sizeof(t_ssl_data));

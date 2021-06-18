@@ -80,12 +80,16 @@ size_t new_size);
 
 
 void						command_base64(t_ssl_env *env, char **args);
+void						process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decrypt);
 void						command_des(t_ssl_env *env, char **args);
 void						command_md5(t_ssl_env *env, char **args);
 void						process_input_md5(t_ssl_data *input, t_ssl_data *output);
 void						command_sha224(t_ssl_env *env, char **args);
+void						process_input_sha224(t_ssl_data *input, t_ssl_data *output);
 void						command_sha256(t_ssl_env *env, char **args);
+void						process_input_256(t_ssl_data *input, t_ssl_data *output);
 void						command_sha512(t_ssl_env *env, char **args);
+void						process_input_512(t_ssl_data *input, t_ssl_data *output);
 
 
 void						gather_full_input(t_ssl_data *input, char *path);
