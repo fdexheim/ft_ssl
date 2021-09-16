@@ -2,112 +2,71 @@
 #include "../../inc/ft_ssl_des.h"
 
 //------------------------------------------------------------------------------
-static void				*pad_buffer_des(t_ssl_env *env, void *src)
+static void			pad_buffer_des(t_ssl_data *data)
 {
-	char				*ret;
-	size_t				new_size;
-	size_t				block_size = env->flags.d == true ? 4 : 3;
+	size_t			new_data_size;
+	size_t			excess;
 
-	new_size = env->input_size + block_size;
-	ret = bootleg_realloc(src, env->input_size, new_size + 1);
-	ret[new_size] = '\0';
-	if (env->flags.d == true)
+	if ((excess = data->size % 8) != 0)
 	{
-		char		*file_ret;
-		size_t		j = 0;
-
-		if ((file_ret = malloc(env->input_size + block_size)) == NULL)
-		{
-			ft_putstr("[Error] Malloc failure\n");
-			exit(EXIT_FAILURE);
-		}
-		ft_bzero(file_ret, env->input_size);
-		for (size_t i = 0; i < env->input_size; i++)
-		{
-			if (ret[i] != '\n')
-			{
-				file_ret[j] = ret[i];
-				j++;
-			}
-		}
-		env->input_size = j;
-		free(ret);
-		return (file_ret);
+		new_data_size = data->size + 8 - excess;
+		data->data = bootleg_realloc(data->data, data->size, new_data_size);
+		data->allocated_size = new_data_size;
+		data->size = new_data_size;
 	}
-	return (ret);
 }
 
 //------------------------------------------------------------------------------
-static char				*process_input_des(t_ssl_env *env, void *input, size_t input_size, bool decrypt)
+void				process_input_des(t_ssl_data *input, t_ssl_data *output)
 {
-	const size_t		block_size = decrypt == true ? 4 : 3;
-	const size_t		output_block_size = decrypt == true ? 3 : 4;
-	const size_t		pad_size = input_size % block_size == 0 ?
-		0 : block_size - (input_size % block_size);
-	const size_t		nb_blocks = pad_size == 0 ? input_size / block_size : (input_size / block_size) + 1;
-	size_t				output_size = nb_blocks * output_block_size;
-	char				*output;
+	const uint32_t	key_size = 8;
+	const uint32_t	block_size = 8;
+	uint32_t		nb_blocks;
 
-	if ((output = malloc(output_size + 1)) == NULL)
+	pad_buffer_des(input);
+	nb_blocks = input->size / block_size;
+	if ((output->data = malloc(input->size)) == NULL)
 	{
-		ft_putstr("[Error] Malloc failure\n");
+		ft_putstr("[Error] Bad malloc()\n");
 		exit(EXIT_FAILURE);
 	}
-	ft_bzero(output, output_size + 1);
+	output->allocated_size = output->size;
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		if (i == nb_blocks - 1)
-		{
-			if (decrypt == true)
-			{
-				char		*ptr = input + (i * block_size);
-				if (ptr[3] == '=')
-					output_size--;
-				if (ptr[2] == '=')
-					output_size--;
-			}
-			process_block_des(input + (i * block_size), output + (i * output_block_size), decrypt, pad_size);
-		}
-		else
-		{
-			process_block_des(input + (i * block_size), output + (i * output_block_size), decrypt, 0);
-		}
+		process_block_des(input->data + (i * block_size), output->data);
 	}
-	display_des(env, output, output_size);
-	return (output);
 }
 
 //------------------------------------------------------------------------------
-static void			exec_des(t_ssl_env *env, char *input)
+static uint8_t				**get_des_keys()
 {
-	char			*des;
+	static int8_t					tmp_keys[3][8] = {
+		{	0x13, 0x34, 0x57, 0x79,
+			0x9b, 0xbc, 0xdf, 0xf1 },
+		{},
+		{}
+	}; // fixed one for now will implement key initialization later
 
-	output = process_input_des(env, input, env->input_size, env->flags.d);
-	free(input);
-	free(output);
-	env_soft_reset(env);
+	
+	return (tmp);
 }
 
 //------------------------------------------------------------------------------
 void				command_des(t_ssl_env *env, char **args)
 {
-	char			*input;
-
-	ft_putstr("des called nyi exiting\n");
-	return ;
+	t_ssl_data		*input;
+	t_ssl_data		*output;
+	uint8_t			**keys;
 
 	parse_des(env, args);
-	if (env->flags.i == true)
+	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
 	{
-		input = gather_full_input(env, env->flags.file_arg);
+		ft_putstr("Bad malloc()\n");
+		exit(EXIT_FAILURE);
 	}
-	else if (env->flags.s == true)
-	{
-		input = ft_strdup(env->flags.s_arg);
-		env->input_size = ft_strlen(input);
-	}
-	else
-		input = gather_full_input(env, NULL);
-	input = pad_buffer_des(env, input);
-	exec_des(env, input);
+	ft_bzero(input, sizeof(t_ssl_data));
+	ft_bzero(output, sizeof(t_ssl_data));
+
+	free(input);
+	free(output);
 }

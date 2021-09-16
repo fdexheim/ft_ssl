@@ -23,6 +23,9 @@ SRC_PATH = ./src/
 SRC_NAME = 	base64/parse_base64.c \
 			base64/process_block_base64.c \
 			base64/base64.c \
+			des/des.c \
+			des/parse_des.c \
+			des/process_block_des.c \
 			md5/md5.c \
 			md5/parse_md5.c \
 			md5/process_block_md5.c \
@@ -40,10 +43,6 @@ SRC_NAME = 	base64/parse_base64.c \
 			main.c \
 			output.c \
 			parse_command.c \
-
-
-#			des/des.c \#
-#			des/parse_des.c \#
 
 OBJ_PATH = ./obj/
 OBJ_NAME =	$(SRC_NAME:.c=.o)

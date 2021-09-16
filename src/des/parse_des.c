@@ -108,12 +108,54 @@ static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 	return 0;
 }
 
+static void					handle_flag_ecb(t_ssl_env *env, char **args)
+{
+	// NYI
+}
+
+static void					handle_flag_cbc(t_ssl_env *env, char **args)
+{
+	// NYI
+}
+
+//------------------------------------------------------------------------------
+static void					parse_specific_des_command(t_ssl_env *env, char **args)
+{
+	const t_ssl_arg_flags	specific_command[] = {
+		{ "ecb", 0, handle_flag_ecb },
+		{ "cbc", 0, handle_flag_cbc }
+	};
+
+	if (args[0] != NULL && !ft_strcmp(args[0], "des3"))
+	{
+		// set flag des3 here;
+	}
+	if (args[1] != NULL)
+	{
+		for (uint32_t j = 0; specific_command[j].flag != NULL; j++)
+		{
+			if (!ft_strcmp(specific_command[j].flag, args[1]))
+			{
+				specific_command[j].flag_handler(env, args);
+			}
+		}
+	}
+}
+
 //------------------------------------------------------------------------------
 void						parse_des(t_ssl_env *env, char **args)
 {
 	uint32_t				arg_flag_size;
 	char					**arg0_split;
+	char *tmp = args[0];
 
+	while (*tmp)
+	{
+		if (*tmp == '-')
+		{
+			*tmp = ' ';
+		}
+	}
 	arg0_split = ft_tokenizer(args[0]);
 
 	for (uint32_t i = 1; args[i] != NULL; i++)

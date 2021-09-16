@@ -109,4 +109,6 @@ void				command_md5(t_ssl_env *env, char **args)
 			data_soft_reset(output);
 		}
 	}
+	free(input);
+	free(output);
 }

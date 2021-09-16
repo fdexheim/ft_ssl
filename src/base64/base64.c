@@ -154,4 +154,8 @@ void				command_base64(t_ssl_env *env, char **args)
 	pad_buffer_base64(input, env->flags.d);
 	process_input_base64(input, output, env->flags.d);
 	display_base64(env, output);
+	data_soft_reset(input);
+	data_soft_reset(output);
+	free(input);
+	free(output);
 }
