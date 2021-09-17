@@ -108,14 +108,20 @@ static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 	return 0;
 }
 
+//------------------------------------------------------------------------------
 static void					handle_flag_ecb(t_ssl_env *env, char **args)
 {
 	// NYI
+	(void)env;
+	(void)args;
 }
 
+//------------------------------------------------------------------------------
 static void					handle_flag_cbc(t_ssl_env *env, char **args)
 {
 	// NYI
+	(void)env;
+	(void)args;
 }
 
 //------------------------------------------------------------------------------
@@ -152,11 +158,12 @@ void						parse_des(t_ssl_env *env, char **args)
 	while (*tmp)
 	{
 		if (*tmp == '-')
-		{
 			*tmp = ' ';
-		}
+		tmp++;
 	}
 	arg0_split = ft_tokenizer(args[0]);
+	parse_specific_des_command(env, arg0_split);
+	ft_free_string_tab(arg0_split);
 
 	for (uint32_t i = 1; args[i] != NULL; i++)
 	{

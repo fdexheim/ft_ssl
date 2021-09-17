@@ -17,14 +17,17 @@ static void			pad_buffer_des(t_ssl_data *data)
 }
 
 //------------------------------------------------------------------------------
-void				process_input_des(t_ssl_data *input, t_ssl_data *output)
+void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, bool decyrypt)
 {
-	const uint32_t	key_size = 8;
+printf(">>process_input_des called\n");
+//	const uint32_t	key_size = 8;
 	const uint32_t	block_size = 8;
 	uint32_t		nb_blocks;
+	(void)decyrypt;
 
 	pad_buffer_des(input);
 	nb_blocks = input->size / block_size;
+	printf("input size %ld / %d = %d\n", input->size, block_size, nb_blocks);
 	if ((output->data = malloc(input->size)) == NULL)
 	{
 		ft_putstr("[Error] Bad malloc()\n");
@@ -33,32 +36,37 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output)
 	output->allocated_size = output->size;
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		process_block_des(input->data + (i * block_size), output->data);
+		process_block_des(input->data + i * block_size, key);
+		break; // debug remove late for iteration;
 	}
+	printf(">>process_input_des ended\n");
 }
 
 //------------------------------------------------------------------------------
-static uint8_t				**get_des_keys()
+static uint8_t					**get_des_keys()
 {
-	static int8_t					tmp_keys[3][8] = {
-		{	0x13, 0x34, 0x57, 0x79,
-			0x9b, 0xbc, 0xdf, 0xf1 },
-		{},
-		{}
-	}; // fixed one for now will implement key initialization later
-
-	
-	return (tmp);
+	uint8_t						**top;
+	top = malloc(sizeof(uint8_t*) * 3);
+	for (uint8_t i = 0; i < 3; i++)
+	{
+		top[i] = malloc(sizeof(uint8_t) * 8);
+	}
+	for (uint8_t i = 0; i < 3; i++)
+	{
+		for (uint8_t j = 0; j < 8; j++)
+			top[i][j] = g_tmp_keys[i][j];
+	}
+	return top;
 }
 
 //------------------------------------------------------------------------------
 void				command_des(t_ssl_env *env, char **args)
 {
+ft_putstr(">>command_des called\n");
 	t_ssl_data		*input;
 	t_ssl_data		*output;
-	uint8_t			**keys;
+	uint8_t	**keys;
 
-	parse_des(env, args);
 	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
 	{
 		ft_putstr("Bad malloc()\n");
@@ -67,6 +75,18 @@ void				command_des(t_ssl_env *env, char **args)
 	ft_bzero(input, sizeof(t_ssl_data));
 	ft_bzero(output, sizeof(t_ssl_data));
 
+	parse_des(env, args);
+	keys = get_des_keys();
+	if (env->flags.s == true)
+	{
+		input->data = ft_strdup(env->flags.s_arg);
+		input->size = ft_strlen(env->flags.s_arg);
+		input->allocated_size = ft_strlen(env->flags.s_arg) + 1;
+	}
+	process_input_des(input, output, keys[0], env->flags.d);
+
 	free(input);
 	free(output);
+
+ft_putstr(">>command_des ended\n");
 }

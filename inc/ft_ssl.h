@@ -108,7 +108,7 @@ static const t_ssl_command		g_commands[] = {
 	{ "sha256", command_sha256 },
 	{ "sha512", command_sha512 },
 	{ "base64", command_base64 },
-//	{ "des", command_des },
+	{ "des", command_des },
 	{ NULL, NULL }
 };
 
