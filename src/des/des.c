@@ -20,7 +20,6 @@ static void			pad_buffer_des(t_ssl_data *data)
 void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, bool decyrypt)
 {
 printf(">>process_input_des called\n");
-//	const uint32_t	key_size = 8;
 	const uint32_t	block_size = 8;
 	uint32_t		nb_blocks;
 	(void)decyrypt;
