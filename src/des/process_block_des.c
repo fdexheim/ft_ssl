@@ -98,15 +98,16 @@ uint8_t			***calc_subkeys(uint8_t *key)
 void			process_block_des(uint8_t *block, uint8_t *key)
 {
 	ft_putstr(">>process_blockey_des called\n");
-	uint8_t tmp_block[8] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
+	uint8_t		tmp_block[8] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
 	block = tmp_block;
 
 	uint8_t		kplus[8];
 	uint8_t		**cd;
 	uint8_t		**k;
-	uint8_t *l = &block[0];
-	uint8_t *r = &block[4];
-	uint8_t ip[8];
+	uint8_t		**l;
+	uint8_t		**r;
+	uint8_t		ip[8];
+
 
 	ft_bzero(kplus, sizeof(uint8_t) * 8);
 	ft_bzero(ip, sizeof(uint8_t) * 8);
@@ -114,7 +115,9 @@ void			process_block_des(uint8_t *block, uint8_t *key)
 	// allocation subkeys
 	cd = malloc(sizeof(uint8_t *) * 17);
 	k = malloc(sizeof(uint8_t *) * 17);
-	if (!cd || !k)
+	l = malloc(sizeof(uint8_t *) * 17);
+	r = malloc(sizeof(uint8_t *) * 17);
+	if (!cd || !k || !l || !r)
 	{
 		ft_putstr("[Error] Bad malloc in des blockey processing\n");
 		return;
@@ -123,24 +126,81 @@ void			process_block_des(uint8_t *block, uint8_t *key)
 	{
 		cd[i] = malloc(sizeof(uint8_t) * 8);
 		k[i] = malloc(sizeof(uint8_t) * 8);
-		if (!cd[i] || !k[i])
+		l[i] = malloc(sizeof(uint8_t) * 8);
+		r[i] = malloc(sizeof(uint8_t) * 8);
+		if (!cd[i] || !k[i] || !l[i] || !r[i])
 		{
 			ft_putstr("[Error] Bad malloc in des blockey processing\n");
 			return;
 		}
 		ft_bzero(cd[i], sizeof(uint8_t) * 8);
 		ft_bzero(k[i], sizeof(uint8_t) * 8);
+		ft_bzero(l[i], sizeof(uint8_t) * 8);
+		ft_bzero(r[i], sizeof(uint8_t) * 8);
 	}
 
+	//--------------------------------------------------//
+	// STEP 1 : CALCULATE SUBKEYS						//
+	//--------------------------------------------------//
 	permute(key, kplus, 8, 7, g_pc1_table, 56);
 	cd_tables(kplus, cd);
 	for (int i = 0; i < 17; i++)
 		permute(cd[i], k[i], 7, 6, g_pc2_table, 48);
+	//--------------------------------------------------//
+	// STEP 2 : ENCODE 64 BIT BLOCKS					//
+	//--------------------------------------------------//
+	permute(block, ip, 8, 8, g_ip_table, 64);
 
+	// splitting ip into L0 and R0
+	for (int i = 0; i < 4; i++)
+	{
+		l[0][i * 2] = ft_extract_bits(ip[i], 4, 7);
+		l[0][i * 2 + 1] = ft_extract_bits(ip[i], 0, 3);
+		r[0][i * 2] = ft_extract_bits(ip[i + 4], 4, 7);
+		r[0][i * 2 + 1] = ft_extract_bits(ip[i + 4], 0, 3);
+	}
+	for (int i = 1; i < 17; i++)
+	{
+		uint8_t e[8];
+		uint8_t ek_xor[8];
+
+		for (int j = 0; j < 8; j++)
+			l[i][j] = r[i - 1][j];
+		ft_bzero(e, sizeof(uint8_t) * 8);
+		ft_bzero(ek_xor, sizeof(uint8_t) * 8);
+		permute(r[i - 1], e, 4, 6, g_ebit_selection_table, 48);
+		for (int j = 0; j < 8; j++)
+		{
+			ek_xor[j] = k[i][j] ^ e[j];
+		}
+
+
+		ft_putstr("E  ");
+		if (i < 10)
+			ft_putstr(" ");
+		ft_put_size_t(i);
+		ft_putstr("    : ");
+		custom_bit_print(e, 8, 6);
+		ft_putstr("EK ");
+		if (i < 10)
+			ft_putstr(" ");
+		ft_put_size_t(i);
+		ft_putstr("    : ");
+		custom_bit_print(ek_xor, 8, 6);
+
+
+	}
+	ft_putstr("\n");
+
+
+	//--------------------------------------------------//
+	// DEBUG DUMPS										//
+	//--------------------------------------------------//
+/*
 	// dump subkeys K/K+
-	ft_putstr("K    : ");
+	ft_putstr("K        : ");
 	custom_bit_print(key, 8, 8);
-	ft_putstr("K+   : ");
+	ft_putstr("K+       : ");
 	custom_bit_print(kplus, 8, 7);
 	ft_putstr("\n");
 
@@ -151,7 +211,7 @@ void			process_block_des(uint8_t *block, uint8_t *key)
 		ft_put_size_t(i);
 		if (i < 10)
 			ft_putstr(" ");
-		ft_putstr(" : ");
+		ft_putstr("     : ");
 		custom_bit_print(cd[i], 8, 7);
 	}
 	ft_putstr("\n");
@@ -163,17 +223,36 @@ void			process_block_des(uint8_t *block, uint8_t *key)
 		ft_put_size_t(i);
 		if (i < 10)
 			ft_putstr(" ");
-		ft_putstr("  : ");
+		ft_putstr("      : ");
 		custom_bit_print(k[i], 8, 6);
 	}
 	ft_putstr("\n");
-
-	ft_putstr("Block : ");
+*/
+	// dump LR subkeys
+	ft_putstr("Block    : ");
 	custom_bit_print(block, 8, 8);
-	ft_putstr("L     : ");
-	custom_bit_print(l, 4, 8);
-	ft_putstr("R     : ");
-	custom_bit_print(r, 4, 8);
+	ft_putstr("IP       : ");
+	custom_bit_print(ip, 8, 8);
+	for (int i = 0; i < 17; i++)
+	{
+		ft_putstr("L");
+		ft_put_size_t(i);
+		if (i < 10)
+			ft_putstr(" ");
+		ft_putstr("      : ");
+		custom_bit_print(l[i], 8, 4);
+		ft_putstr("R");
+		ft_put_size_t(i);
+		if (i < 10)
+			ft_putstr(" ");
+		ft_putstr("      : ");
+		custom_bit_print(r[i], 8, 4);
+
+	}
+	ft_putstr("\n");
+
+
+
 
 	// free subkeys
 	for (int i = 0; i < 17; i++)
