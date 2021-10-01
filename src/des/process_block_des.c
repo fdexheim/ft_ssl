@@ -86,69 +86,83 @@ void			cd_tables(uint8_t *kplus, uint8_t **cd)
 	}
 }
 
-
 //------------------------------------------------------------------------------
-uint8_t			***calc_subkeys(uint8_t *key)
+void			free_subkeys(t_des_subkeys *sk)
 {
-	(void)key;
-	return (NULL);
+	for (int i = 0; i < 17; i++)
+	{
+		free(sk->cd[i]);
+		free(sk->k[i]);
+	}
+	free(sk->cd);
+	free(sk->k);
+	free(sk);
 }
 
 //------------------------------------------------------------------------------
-void			process_block_des(uint8_t *block, uint8_t *key)
+// STEP 1 : CALCULATE SUBKEYS
+//------------------------------------------------------------------------------
+t_des_subkeys			*get_subkeys(uint8_t * key)
 {
-	ft_putstr(">>process_blockey_des called\n");
-	uint8_t		tmp_block[8] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
-	block = tmp_block;
+	t_des_subkeys		*ret;
 
-	uint8_t		kplus[8];
-	uint8_t		**cd;
-	uint8_t		**k;
+	if ((ret = malloc(sizeof(t_des_subkeys))) == NULL)
+		return (NULL);
+	ret->cd = malloc(sizeof(uint8_t *) * 17);
+	ret->k = malloc(sizeof(uint8_t *) * 17);
+	if (!ret->cd || !ret->k)
+	{
+		ft_putstr("[Error] Bad malloc in des subkey allocation\n");
+		return (NULL);
+	}
+	for (int i = 0; i < 17; i++)
+	{
+		ret->cd[i] = malloc(sizeof(uint8_t) * 8);
+		ret->k[i] = malloc(sizeof(uint8_t) * 8);
+		if (!ret->cd[i] || !ret->k[i])
+		{
+			ft_putstr("[Error] Bad malloc in des subkey allocation\n");
+			return (NULL);
+		}
+		ft_bzero(ret->cd[i], sizeof(uint8_t) * 8);
+		ft_bzero(ret->k[i], sizeof(uint8_t) * 8);
+	}
+	ft_bzero(ret->kplus, sizeof(uint8_t) * 8);
+	permute(key, ret->kplus, 8, 7, g_pc1_table, 56);
+	cd_tables(ret->kplus, ret->cd);
+	for (int i = 0; i < 17; i++)
+		permute(ret->cd[i], ret->k[i], 7, 6, g_pc2_table, 48);
+
+	return (ret);
+}
+
+//------------------------------------------------------------------------------
+// STEP 2 : ENCODE 64 BIT BLOCKS
+//------------------------------------------------------------------------------
+void			process_block_des(uint8_t *block, t_des_subkeys *subkeys)
+{
 	uint8_t		**l;
 	uint8_t		**r;
 	uint8_t		ip[8];
 
-
-	ft_bzero(kplus, sizeof(uint8_t) * 8);
-	ft_bzero(ip, sizeof(uint8_t) * 8);
-
-	// allocation subkeys
-	cd = malloc(sizeof(uint8_t *) * 17);
-	k = malloc(sizeof(uint8_t *) * 17);
-	l = malloc(sizeof(uint8_t *) * 17);
-	r = malloc(sizeof(uint8_t *) * 17);
-	if (!cd || !k || !l || !r)
+	if ((l = malloc(sizeof(uint8_t *) * 17)) == NULL
+		|| (r = malloc(sizeof(uint8_t *) * 17)) == NULL)
 	{
-		ft_putstr("[Error] Bad malloc in des blockey processing\n");
-		return;
+		ft_putstr("[Error] Bad malloc in process_block_des\n");
+		return ;
 	}
 	for (int i = 0; i < 17; i++)
 	{
-		cd[i] = malloc(sizeof(uint8_t) * 8);
-		k[i] = malloc(sizeof(uint8_t) * 8);
 		l[i] = malloc(sizeof(uint8_t) * 8);
 		r[i] = malloc(sizeof(uint8_t) * 8);
-		if (!cd[i] || !k[i] || !l[i] || !r[i])
+		if (!l[i] || !r[i])
 		{
-			ft_putstr("[Error] Bad malloc in des blockey processing\n");
-			return;
+			ft_putstr("[Error] Bad malloc in process_block_des\n");
+			return ;
 		}
-		ft_bzero(cd[i], sizeof(uint8_t) * 8);
-		ft_bzero(k[i], sizeof(uint8_t) * 8);
-		ft_bzero(l[i], sizeof(uint8_t) * 8);
-		ft_bzero(r[i], sizeof(uint8_t) * 8);
 	}
-
-	//--------------------------------------------------//
-	// STEP 1 : CALCULATE SUBKEYS						//
-	//--------------------------------------------------//
-	permute(key, kplus, 8, 7, g_pc1_table, 56);
-	cd_tables(kplus, cd);
-	for (int i = 0; i < 17; i++)
-		permute(cd[i], k[i], 7, 6, g_pc2_table, 48);
-	//--------------------------------------------------//
-	// STEP 2 : ENCODE 64 BIT BLOCKS					//
-	//--------------------------------------------------//
+	// get ip with ip table permutation
+	ft_bzero(ip, sizeof(uint8_t) * 8);
 	permute(block, ip, 8, 8, g_ip_table, 64);
 
 	// splitting ip into L0 and R0
@@ -159,109 +173,71 @@ void			process_block_des(uint8_t *block, uint8_t *key)
 		r[0][i * 2] = ft_extract_bits(ip[i + 4], 4, 7);
 		r[0][i * 2 + 1] = ft_extract_bits(ip[i + 4], 0, 3);
 	}
+
 	for (int i = 1; i < 17; i++)
 	{
 		uint8_t e[8];
 		uint8_t ek_xor[8];
+		uint8_t s[8];
+		uint8_t p[8];
 
-		for (int j = 0; j < 8; j++)
-			l[i][j] = r[i - 1][j];
 		ft_bzero(e, sizeof(uint8_t) * 8);
 		ft_bzero(ek_xor, sizeof(uint8_t) * 8);
+		ft_bzero(s, sizeof(uint8_t) * 8);
+		ft_bzero(p, sizeof(uint8_t) * 8);
+
+		// We get L in this iteration from R in previous iteration
+		for (int j = 0; j < 8; j++)
+			l[i][j] = r[i - 1][j];
 		permute(r[i - 1], e, 4, 6, g_ebit_selection_table, 48);
+
+		// "S boxes" step
 		for (int j = 0; j < 8; j++)
 		{
-			ek_xor[j] = k[i][j] ^ e[j];
+			const uint8_t *tables_s[8] = { g_s1_table, g_s2_table, g_s3_table,
+				g_s4_table, g_s5_table, g_s6_table, g_s7_table, g_s8_table };
+			uint8_t row_s = 0; // from first and last bits of ek_xor
+			uint8_t col_s = 0; // from the 4 bits in between
+
+			ek_xor[j] = subkeys->k[i][j] ^ e[j];
+			if (ft_testbit(ek_xor[j], 0))
+				row_s += 1;
+			if (ft_testbit(ek_xor[j], 5))
+				row_s += 2;
+			col_s = ft_extract_bits(ek_xor[j], 1, 4);
+			s[j] = tables_s[j][16 * row_s + col_s];
 		}
 
+		// P table permutation
+		permute(s, p, 4, 4, g_p_table, 32);
 
-		ft_putstr("E  ");
-		if (i < 10)
-			ft_putstr(" ");
-		ft_put_size_t(i);
-		ft_putstr("    : ");
-		custom_bit_print(e, 8, 6);
-		ft_putstr("EK ");
-		if (i < 10)
-			ft_putstr(" ");
-		ft_put_size_t(i);
-		ft_putstr("    : ");
-		custom_bit_print(ek_xor, 8, 6);
-
-
+		// We finally can calculate R for this iteration
+		for (int j = 0; j < 8; j++)
+			r[i][j] = l[i - 1][j] ^ p[j];
 	}
-	ft_putstr("\n");
 
-
-	//--------------------------------------------------//
-	// DEBUG DUMPS										//
-	//--------------------------------------------------//
-/*
-	// dump subkeys K/K+
-	ft_putstr("K        : ");
-	custom_bit_print(key, 8, 8);
-	ft_putstr("K+       : ");
-	custom_bit_print(kplus, 8, 7);
-	ft_putstr("\n");
-
-	// dump subkeys C/D
+	uint8_t rl_16[8];
+	uint8_t ip_1[8];
+	ft_bzero(rl_16, sizeof(uint8_t) * 8);
+	ft_bzero(ip_1, sizeof(uint8_t) * 8);
+	// merge l[16] and r[16]
+	for (int i = 0; i < 4; i++)
+	{
+		rl_16[i] = (r[16][i * 2] << 4) + r[16][i * 2 + 1];
+		rl_16[i + 4] = (l[16][i * 2] << 4) + l[16][i * 2 + 1];
+	}
+	permute(rl_16, ip_1, 8, 8, g_ip1_table, 64);
+	ft_putstr("RL16 : ");
+	custom_bit_print(rl_16, 8, 8);
+	// We finally have our translated block
+	ft_putstr("IP_1 : ");
+	custom_bit_print(ip_1, 8, 8);
+	
 	for (int i = 0; i < 17; i++)
 	{
-		ft_putstr("CD");
-		ft_put_size_t(i);
-		if (i < 10)
-			ft_putstr(" ");
-		ft_putstr("     : ");
-		custom_bit_print(cd[i], 8, 7);
+		free(l[i]);
+		free(r[i]);
 	}
-	ft_putstr("\n");
-
-	// dump subkeys K
-	for (int i = 0; i < 17; i++)
-	{
-		ft_putstr("K");
-		ft_put_size_t(i);
-		if (i < 10)
-			ft_putstr(" ");
-		ft_putstr("      : ");
-		custom_bit_print(k[i], 8, 6);
-	}
-	ft_putstr("\n");
-*/
-	// dump LR subkeys
-	ft_putstr("Block    : ");
-	custom_bit_print(block, 8, 8);
-	ft_putstr("IP       : ");
-	custom_bit_print(ip, 8, 8);
-	for (int i = 0; i < 17; i++)
-	{
-		ft_putstr("L");
-		ft_put_size_t(i);
-		if (i < 10)
-			ft_putstr(" ");
-		ft_putstr("      : ");
-		custom_bit_print(l[i], 8, 4);
-		ft_putstr("R");
-		ft_put_size_t(i);
-		if (i < 10)
-			ft_putstr(" ");
-		ft_putstr("      : ");
-		custom_bit_print(r[i], 8, 4);
-
-	}
-	ft_putstr("\n");
-
-
-
-
-	// free subkeys
-	for (int i = 0; i < 17; i++)
-	{
-		free(cd[i]);
-		free(k[i]);
-	}
-	free(cd);
-	free(k);
-
-	ft_putstr(">>process_blockey_des ended\n");
+	free(l);
+	free(r);
 }

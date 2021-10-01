@@ -105,6 +105,23 @@ static const uint8_t		g_s8_table[64] = {
 	 2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11
 };
 
+static const uint8_t		g_p_table[32] = {
+	16,  7, 20, 21, 29, 12, 28, 17,
+	 1, 15, 23, 26,  5, 18, 31, 10,
+	 2,  8, 24, 14, 32, 27,  3,  9,
+	19, 13, 30,  6, 22, 11,  4, 25
+};
+
+static const uint8_t		g_ip1_table[64] = {
+	40,  8, 48, 16, 56, 24, 64, 32,
+	39,  7, 47, 15, 55, 23, 63, 31,
+	38,  6, 46, 14, 54, 22, 62, 30,
+	37,  5, 45, 13, 53, 21, 61, 29,
+	36,  4, 44, 12, 52, 20, 60, 28,
+	35,  3, 43, 11, 51, 19, 59, 27,
+	34,  2, 42, 10, 50, 18, 58, 26,
+	33,  1, 41,  9, 49, 17, 57, 25
+};
 
 static const uint8_t	g_tmp_keys[3][8] = {
 	{	0x13, 0x34, 0x57, 0x79,
@@ -116,11 +133,20 @@ static const uint8_t	g_tmp_keys[3][8] = {
 	}
 }; // fixed one for now will implement key initialization later
 
+typedef struct			s_des_subkeys
+{
+	uint8_t				kplus[8];
+	uint8_t				**cd;
+	uint8_t				**k;
+}						t_des_subkeys;
 
 
-void						display_des(t_ssl_env *env, char *src, void *state,
+void					display_des(t_ssl_env *env, char *src, void *state,
 		bool string_mode);
-void						parse_des(t_ssl_env *env, char **args);
-void						process_block_des(uint8_t *block, uint8_t *key);
+void					parse_des(t_ssl_env *env, char **args);
+t_des_subkeys			*get_subkeys(uint8_t *key);
+void					free_subkeys(t_des_subkeys *sk);
+void					process_block_des(uint8_t *block,
+	t_des_subkeys *subkeys);
 
 #endif
