@@ -123,16 +123,6 @@ static const uint8_t		g_ip1_table[64] = {
 	33,  1, 41,  9, 49, 17, 57, 25
 };
 
-static const uint8_t	g_tmp_keys[3][8] = {
-	{	0x13, 0x34, 0x57, 0x79,
-		0x9b, 0xbc, 0xdf, 0xf1 },
-	{	0x01, 0x02, 0x03, 0x04,
-		0x05, 0x06, 0x07, 0x08 },
-	{	0x09, 0x0a, 0x0b, 0x0c,
-		0x0d, 0x0e, 0x0f, 0x00
-	}
-}; // fixed one for now will implement key initialization later
-
 typedef struct			s_des_subkeys
 {
 	uint8_t				kplus[8];
@@ -141,12 +131,10 @@ typedef struct			s_des_subkeys
 }						t_des_subkeys;
 
 
-void					display_des(t_ssl_env *env, char *src, void *state,
-		bool string_mode);
 void					parse_des(t_ssl_env *env, char **args);
 t_des_subkeys			*get_subkeys(uint8_t *key);
 void					free_subkeys(t_des_subkeys *sk);
-void					process_block_des(uint8_t *block,
+void					process_block_des(uint8_t *block, uint8_t *output_block,
 	t_des_subkeys *subkeys);
 
 #endif

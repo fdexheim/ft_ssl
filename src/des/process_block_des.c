@@ -139,7 +139,7 @@ t_des_subkeys			*get_subkeys(uint8_t * key)
 //------------------------------------------------------------------------------
 // STEP 2 : ENCODE 64 BIT BLOCKS
 //------------------------------------------------------------------------------
-void			process_block_des(uint8_t *block, t_des_subkeys *subkeys)
+void			process_block_des(uint8_t *block, uint8_t *output_block, t_des_subkeys *subkeys)
 {
 	uint8_t		**l;
 	uint8_t		**r;
@@ -227,11 +227,11 @@ void			process_block_des(uint8_t *block, t_des_subkeys *subkeys)
 		rl_16[i + 4] = (l[16][i * 2] << 4) + l[16][i * 2 + 1];
 	}
 	permute(rl_16, ip_1, 8, 8, g_ip1_table, 64);
-	ft_putstr("RL16 : ");
-	custom_bit_print(rl_16, 8, 8);
+	//ft_putstr("RL16 : ");
+	//custom_bit_print(rl_16, 8, 8);
 	// We finally have our translated block
-	ft_putstr("IP_1 : ");
-	custom_bit_print(ip_1, 8, 8);
+	//ft_putstr("IP_1 : ");
+	//custom_bit_print(ip_1, 8, 8);
 	
 	for (int i = 0; i < 17; i++)
 	{
@@ -240,4 +240,5 @@ void			process_block_des(uint8_t *block, t_des_subkeys *subkeys)
 	}
 	free(l);
 	free(r);
+	ft_memcpy(output_block, ip_1, sizeof(uint8_t) * 8);
 }

@@ -60,6 +60,8 @@ uint64_t		ft_reverse_endianess64(const uint64_t src);
 void			ft_set_bit_8(uint8_t *value, uint8_t bit_number);
 void			ft_set_bit_32(uint32_t *value, uint8_t bit_number);
 void			ft_set_bit_64(uint64_t *value, uint8_t bit_number);
+uint32_t		ft_set_bit_span(uint32_t val, uint32_t new_bit_span,
+	uint8_t bit_start, uint8_t bit_end);
 void			ft_sort_string_table(char **table);
 int				ft_strcmp(const char *s1, const char *s2);
 char			*ft_strdup(const char *src);
