@@ -1,7 +1,7 @@
 import os
 import sys
 
-def compare(testfile):
+def compare(mode, testfile):
 #    my = testfile + "Eoutput"
 #    myd = testfile + "Doutput"
 #    ref = testfile + "REFEoutput"
@@ -12,9 +12,12 @@ def compare(testfile):
     ref = "ref"
     refd = "refd"
 
+    os.system("rm " + my)
+    os.system("rm " + ref)
+
     os.system("./ft_ssl des -i " + testfile + " -o " + my + " -k 133457799bbcdff1 ")
 #    os.system("./ft_ssl des -d -i " + my + " -o " + myd)
-    os.system("openssl des -in " + testfile + " -out " + ref + " -K 133457799bbcdff1 -iv 0000000000000000")
+    os.system("openssl " + mode + " -in " + testfile + " -out " + ref + " -K 133457799bbcdff1 -iv 0000000000000000")
 #    os.system("openssl des -d -in " + ref + " -out " + refd)
 
     print("[ENCRYPT] diff " + my + " VS " + ref)
@@ -22,9 +25,14 @@ def compare(testfile):
 #    print("[DECRYPT] diff " + myd + " VS " + refd)
 #    os.system("diff " + myd + " " + refd)
 
+    print("cat my  (" + str(os.path.getsize(my)) + " bytes)")
+    os.system("cat " + my)
+    print("\ncat ref (" + str(os.path.getsize(ref)) + " bytes)")
+    os.system("cat " + ref)
+
 #    os.system("rm " + my)
 #    os.system("rm " + myd)
 #    os.system("rm " + ref)
 #    os.system("rm " + refd)
 
-compare(sys.argv[1])
+compare(sys.argv[1], sys.argv[2])

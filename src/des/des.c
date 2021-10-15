@@ -27,16 +27,15 @@ static void			display_des(t_ssl_data *output, char *target)
 //------------------------------------------------------------------------------
 static void			pad_buffer_des(t_ssl_data *data)
 {
-	size_t			new_data_size;
-	size_t			excess;
+	size_t			excess = data->size % 8;
+	size_t			pad_size = 8 - excess;
+	size_t			new_data_size = data->size + pad_size;
 
-	if ((excess = data->size % 8) != 0 || data->size == 0)
-	{
-		new_data_size = data->size + 8 - excess;
-		data->data = bootleg_realloc(data->data, data->size, new_data_size);
-		data->allocated_size = new_data_size;
-		data->size = new_data_size;
-	}
+	data->data = bootleg_realloc(data->data, data->size, new_data_size);
+	data->allocated_size = new_data_size;
+	data->size = new_data_size;
+	for (size_t i = data->size - pad_size; i < data->size; i++)
+		((uint8_t*)data->data)[i] = pad_size;
 }
 
 //------------------------------------------------------------------------------
@@ -62,8 +61,11 @@ printf(">>process_input_des called\n");
 	output->allocated_size = output->size;
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
+		for (uint8_t j = 0; j < block_size; j++)
+			printf("%02x ", *(uint8_t *)(input->data + i * block_size + j));
 		process_block_des(input->data + i * block_size,
 			output->data + i * block_size, subkeys);
+		printf("\n");
 	}
 	free_subkeys(subkeys);
 	printf(">>process_input_des ended\n");
@@ -157,42 +159,7 @@ static uint8_t					*get_des_keys_input(char *hex_key)
 	translate_key_from_hex_str(hex_key, keys, expected_size);
 	if (key_input.data != NULL)
 		free(key_input.data);
-
-/*
-	// TMP KEYS REMOVE LATER
-		static const uint8_t	tmp_keys[24] = {
-		0x13, 0x34, 0x57, 0x79,
-		0x9b, 0xbc, 0xdf, 0xf1,
-		0x01, 0x02, 0x03, 0x04,
-		0x05, 0x06, 0x07, 0x08,
-		0x09, 0x0a, 0x0b, 0x0c,
-		0x0d, 0x0e, 0x0f, 0x00
-	}; // fixed one for now will implement key initialization later
-
-	ft_putstr("KEYs : ");
-	for (uint8_t j = 0; j < key_output_size; j++)
-	{
-		if (keys[j] <= 0xf)
-			write(1, "0", 1);
-		ft_put_size_t_hex(keys[j]);
-	}
-	ft_putstr("\n");
-
-//	for (uint8_t j = 0; j < key_output_size; j++)
-//		keys[j] = tmp_keys[j];
-
-	ft_putstr("KEYs : ");
-	for (uint8_t j = 0; j < key_output_size; j++)
-	{
-		if (keys[j] <= 0xf)
-			write(1, "0", 1);
-		ft_put_size_t_hex(keys[j]);
-	}
-	ft_putstr("\n");
-*/
 	return keys;
-
-
 }
 
 //------------------------------------------------------------------------------
