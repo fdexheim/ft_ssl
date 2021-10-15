@@ -78,7 +78,6 @@ static uint8_t		base_16(char c)
 	{
 		if (base[i] == c)
 		{
-			printf("translated ret  = '%x'\n", i);
 			return (i);
 		}
 
@@ -105,22 +104,18 @@ bool				lowercase_and_check_hex_sanity(char *input, size_t size)
 //------------------------------------------------------------------------------
 void				translate_key_from_hex_str(char *input, uint8_t *key, size_t expected_size)
 {
-	printf("Key to translate = '%s'\n", input);
 	uint8_t span;
 	for (uint32_t i = 0; i < expected_size; i++)
 	{
 		span =  base_16(input[i]);
 		if (i % 2 == 0)
 		{
-			printf("4-7 bit span = %x\n", span);
-			key[i / 2] = ft_set_bit_span(key[i / 2], span, 4, 7);
+			key[i / 2] += span << 4;
 		}
 		else
 		{
-			printf("0-3 bit span = %x\n", span);
-			key[i / 2] = ft_set_bit_span(key[i / 2], span, 0, 3);
+			key[i / 2] += span;
 		}
-		printf("key[%d] = %x\n", i/2, key[i / 2]);
 	}
 }
 
@@ -163,6 +158,7 @@ static uint8_t					*get_des_keys_input(char *hex_key)
 	if (key_input.data != NULL)
 		free(key_input.data);
 
+/*
 	// TMP KEYS REMOVE LATER
 		static const uint8_t	tmp_keys[24] = {
 		0x13, 0x34, 0x57, 0x79,
@@ -182,8 +178,8 @@ static uint8_t					*get_des_keys_input(char *hex_key)
 	}
 	ft_putstr("\n");
 
-	for (uint8_t j = 0; j < key_output_size; j++)
-		keys[j] = tmp_keys[j];
+//	for (uint8_t j = 0; j < key_output_size; j++)
+//		keys[j] = tmp_keys[j];
 
 	ft_putstr("KEYs : ");
 	for (uint8_t j = 0; j < key_output_size; j++)
@@ -193,6 +189,7 @@ static uint8_t					*get_des_keys_input(char *hex_key)
 		ft_put_size_t_hex(keys[j]);
 	}
 	ft_putstr("\n");
+*/
 	return keys;
 
 
