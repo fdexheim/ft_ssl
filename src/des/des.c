@@ -39,18 +39,14 @@ static void			pad_buffer_des(t_ssl_data *data)
 }
 
 //------------------------------------------------------------------------------
-void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, bool decyrypt)
+void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, uint8_t *iv, e_des_operating_mode mode)
 {
-printf(">>process_input_des called\n");
 	const uint32_t	block_size = 8;
-//	uint8_t			tmp_block[8] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
 	uint32_t		nb_blocks;
-	(void)decyrypt;
 	t_des_subkeys	*subkeys;
 
 	pad_buffer_des(input);
 	nb_blocks = input->size / block_size;
-	printf("input size %ld / %d = %d\n", input->size, block_size, nb_blocks);
 	subkeys = get_subkeys(key);
 	if ((output->data = malloc(input->size)) == NULL || subkeys == NULL)
 	{
@@ -61,14 +57,17 @@ printf(">>process_input_des called\n");
 	output->allocated_size = output->size;
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		for (uint8_t j = 0; j < block_size; j++)
-			printf("%02x ", *(uint8_t *)(input->data + i * block_size + j));
+		if (ft_testbit(mode, CBC_BIT) == true) // CBC bit test for XOR with previous block
+		{
+			uint8_t *block = input->data + i * block_size;
+			uint8_t *prev_block = (i == 0) ? iv : output->data + i * block_size - block_size;
+			for (uint8_t j = 0; j < block_size; j++)
+				block[j] ^= prev_block[j];
+		}
 		process_block_des(input->data + i * block_size,
 			output->data + i * block_size, subkeys);
-		printf("\n");
 	}
 	free_subkeys(subkeys);
-	printf(">>process_input_des ended\n");
 }
 
 //------------------------------------------------------------------------------
@@ -77,13 +76,8 @@ static uint8_t		base_16(char c)
 	const char		base[16] = "0123456789abcdef";
 
 	for (uint8_t i = 0; i < 16; i++)
-	{
 		if (base[i] == c)
-		{
 			return (i);
-		}
-
-	}
 	return (0);
 }
 
@@ -168,7 +162,7 @@ static void						get_initialisation_vector(char *src, uint8_t *iv)
 	(void)iv;
 	if (src == NULL)
 	{
-		
+		ft_bzero(iv, 8);
 	}
 	else
 	{
@@ -188,6 +182,7 @@ void				command_des(t_ssl_env *env, char **args)
 	t_ssl_data		*output;
 	uint8_t			*keys;
 	uint8_t			iv[8];
+	e_des_operating_mode	mode;
 
 	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
 	{
@@ -198,7 +193,9 @@ void				command_des(t_ssl_env *env, char **args)
 	ft_bzero(output, sizeof(t_ssl_data));
 	ft_bzero(iv, sizeof(uint8_t) * 8);
 
-	parse_des(env, args);
+	mode = parse_des(env, args);
+	if (env->flags.d == true)
+		mode |= DECRYPT;
 	get_initialisation_vector(env->flags.v_arg, iv);
 	if ((keys = get_des_keys_input(env->flags.k_arg)) == NULL)
 	{
@@ -216,7 +213,7 @@ void				command_des(t_ssl_env *env, char **args)
 		gather_full_input(input, env->flags.file_arg);
 	}
 
-	process_input_des(input, output, keys, env->flags.d);
+	process_input_des(input, output, keys, iv, mode);
 	if (env->flags.o == true)
 		display_des(output, env->flags.file_arg_out);
 	else

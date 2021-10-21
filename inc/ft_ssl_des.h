@@ -123,6 +123,31 @@ static const uint8_t		g_ip1_table[64] = {
 	33,  1, 41,  9, 49, 17, 57, 25
 };
 
+
+typedef enum		des_operating_mode
+{
+	DECRYPT = 1,
+	CBC = 2,
+	ECB = 4,
+	DES3 = 8
+}					e_des_operating_mode;
+
+typedef enum		des_op_mode_bit
+{
+	DECRYPT_BIT = 0,
+	CBC_BIT = 1,
+	ECB_BIT = 2,
+	DES3_BIT = 3
+}					e_des_op_mode_bits;
+
+
+typedef struct		s_des_operating_mode
+{
+	char			*mode;
+	uint32_t		value;
+}					t_des_operating_mode;
+
+
 typedef struct			s_des_subkeys
 {
 	uint8_t				kplus[8];
@@ -131,7 +156,7 @@ typedef struct			s_des_subkeys
 }						t_des_subkeys;
 
 
-void					parse_des(t_ssl_env *env, char **args);
+e_des_operating_mode	parse_des(t_ssl_env *env, char **args);
 t_des_subkeys			*get_subkeys(uint8_t *key);
 void					free_subkeys(t_des_subkeys *sk);
 void					process_block_des(uint8_t *block, uint8_t *output_block,

@@ -1,4 +1,5 @@
 #include "../../inc/ft_ssl.h"
+#include "../../inc/ft_ssl_des.h"
 
 //------------------------------------------------------------------------------
 static void					parse_flag_cluster(t_ssl_env *env, char *arg)
@@ -109,51 +110,35 @@ static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 }
 
 //------------------------------------------------------------------------------
-static void					handle_flag_ecb(t_ssl_env *env, char **args)
+static e_des_operating_mode		parse_specific_des_command(char **args)
 {
-	// NYI
-	(void)env;
-	(void)args;
-}
-
-//------------------------------------------------------------------------------
-static void					handle_flag_cbc(t_ssl_env *env, char **args)
-{
-	// NYI
-	(void)env;
-	(void)args;
-}
-
-//------------------------------------------------------------------------------
-static void					parse_specific_des_command(t_ssl_env *env, char **args)
-{
-	const t_ssl_arg_flags	specific_command[] = {
-		{ "ecb", 0, handle_flag_ecb },
-		{ "cbc", 0, handle_flag_cbc }
+	const t_des_operating_mode		modes[] = {
+		{ "cbc", CBC },
+		{ "ecb", ECB },
+		{ NULL, 0 }
 	};
+	e_des_operating_mode		ret = 0;
 
 	if (args[0] != NULL && !ft_strcmp(args[0], "des3"))
+		ret |= DES3 ;
+	if (args[1] == NULL)
 	{
-		// set flag des3 here;
+		ret |= ECB;
+		return ret;
 	}
-	if (args[1] != NULL)
-	{
-		for (uint32_t j = 0; specific_command[j].flag != NULL; j++)
-		{
-			if (!ft_strcmp(specific_command[j].flag, args[1]))
-			{
-				specific_command[j].flag_handler(env, args);
-			}
-		}
-	}
+	for (uint32_t j = 0; modes[j].mode != NULL; j++)
+		if (!ft_strcmp(modes[j].mode, args[1]))
+			ret |= modes[j].value;
+	return ret;
 }
 
 //------------------------------------------------------------------------------
-void						parse_des(t_ssl_env *env, char **args)
+e_des_operating_mode	parse_des(t_ssl_env *env, char **args)
 {
 	uint32_t				arg_flag_size;
 	char					**arg0_split;
 	char *tmp = args[0];
+	e_des_operating_mode	op_flags = 0;
 
 	while (*tmp)
 	{
@@ -162,7 +147,7 @@ void						parse_des(t_ssl_env *env, char **args)
 		tmp++;
 	}
 	arg0_split = ft_tokenizer(args[0]);
-	parse_specific_des_command(env, arg0_split);
+	op_flags |= parse_specific_des_command(arg0_split);
 	ft_free_string_tab(arg0_split);
 
 	for (uint32_t i = 1; args[i] != NULL; i++)
@@ -177,11 +162,12 @@ void						parse_des(t_ssl_env *env, char **args)
 				if (env->file_args == NULL)
 				{
 					env->file_args = &args[i];
-					return ;
+					return op_flags ;
 				}
 			}
 		}
 		else
 			i += arg_flag_size;
 	}
+	return (op_flags);
 }

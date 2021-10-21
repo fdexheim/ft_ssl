@@ -227,12 +227,8 @@ void			process_block_des(uint8_t *block, uint8_t *output_block, t_des_subkeys *s
 		rl_16[i + 4] = (l[16][i * 2] << 4) + l[16][i * 2 + 1];
 	}
 	permute(rl_16, ip_1, 8, 8, g_ip1_table, 64);
-	//ft_putstr("RL16 : ");
-	//custom_bit_print(rl_16, 8, 8);
 	// We finally have our translated block
-	//ft_putstr("IP_1 : ");
-	//custom_bit_print(ip_1, 8, 8);
-	
+	ft_memcpy(output_block, ip_1, sizeof(uint8_t) * 8);
 	for (int i = 0; i < 17; i++)
 	{
 		free(l[i]);
@@ -240,5 +236,4 @@ void			process_block_des(uint8_t *block, uint8_t *output_block, t_des_subkeys *s
 	}
 	free(l);
 	free(r);
-	ft_memcpy(output_block, ip_1, sizeof(uint8_t) * 8);
 }
