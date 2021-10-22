@@ -6,7 +6,7 @@
 #    By: fdexheim <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/26 14:02:22 by fdexheim          #+#    #+#              #
-#    Updated: 2019/09/25 11:23:35 by fdexheim         ###   ########.fr        #
+#    Updated: 2021/10/22 13:10:58 by fdexheim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,7 @@ SRC_NAME = 	base64/parse_base64.c \
 			des/des.c \
 			des/parse_des.c \
 			des/process_block_des.c \
+			des/utils.c \
 			md5/md5.c \
 			md5/parse_md5.c \
 			md5/process_block_md5.c \

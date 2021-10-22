@@ -2,6 +2,8 @@
 #include "../../inc/ft_ssl_des.h"
 
 //------------------------------------------------------------------------------
+// STEP 0 : UTILITY FUNCTIONS FOR ENCRYPTION AND DECRYPTION
+//------------------------------------------------------------------------------
 void			custom_bit_print(uint8_t *key, uint8_t key_size, uint8_t bit_size)
 {
 	for (uint8_t i = 0; i < key_size; i++)
@@ -41,8 +43,25 @@ void			custom_bit_lshift(uint8_t *key, uint8_t key_size, uint8_t bit_number_wrap
 		ft_set_bit_8(&key[key_size - 1], 0);
 }
 
+	/*
 //------------------------------------------------------------------------------
-void			permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
+void			anti_permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
+		uint8_t new_cell_size, const uint8_t *permutation_table, uint8_t permutations)
+{
+	uint8_t old_cell_number = 0;
+	uint8_t old_array_index = 0;
+	uint8_t new_cell_number = 0;
+	uint8_t new_array_index = 0;
+	for (uint32_t i = 0; i < permutations; i++)
+	{
+	
+	}
+	
+}
+*/
+
+//------------------------------------------------------------------------------
+static void			permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
 		uint8_t new_cell_size, const uint8_t *permutation_table, uint8_t permutations)
 {
 	uint8_t old_cell_number = 0;
@@ -50,7 +69,7 @@ void			permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
 	uint8_t new_cell_number = 0;
 	uint8_t new_array_index = 0;
 
-	for (uint8_t i = 0; i < permutations; i++)
+	for (uint32_t i = 0; i < permutations; i++)
 	{
 		old_array_index = (permutation_table[i] - 1) / old_cell_size;
 		old_cell_number = (permutation_table[i] - 1) % old_cell_size;
@@ -139,11 +158,13 @@ t_des_subkeys			*get_subkeys(uint8_t * key)
 //------------------------------------------------------------------------------
 // STEP 2 : ENCODE 64 BIT BLOCKS
 //------------------------------------------------------------------------------
-void			process_block_des(uint8_t *block, uint8_t *output_block, t_des_subkeys *subkeys)
+void			process_block_des_encrypt(uint8_t *block, uint8_t *output_block, t_des_subkeys *subkeys)
 {
 	uint8_t		**l;
 	uint8_t		**r;
 	uint8_t		ip[8];
+	uint8_t		rl_16[8];
+	uint8_t		ip_1[8];
 
 	if ((l = malloc(sizeof(uint8_t *) * 17)) == NULL
 		|| (r = malloc(sizeof(uint8_t *) * 17)) == NULL)
@@ -216,8 +237,6 @@ void			process_block_des(uint8_t *block, uint8_t *output_block, t_des_subkeys *s
 			r[i][j] = l[i - 1][j] ^ p[j];
 	}
 
-	uint8_t rl_16[8];
-	uint8_t ip_1[8];
 	ft_bzero(rl_16, sizeof(uint8_t) * 8);
 	ft_bzero(ip_1, sizeof(uint8_t) * 8);
 	// merge l[16] and r[16]
@@ -226,10 +245,68 @@ void			process_block_des(uint8_t *block, uint8_t *output_block, t_des_subkeys *s
 		rl_16[i] = (r[16][i * 2] << 4) + r[16][i * 2 + 1];
 		rl_16[i + 4] = (l[16][i * 2] << 4) + l[16][i * 2 + 1];
 	}
+
+	ft_putstr("rl_16    ");
+	custom_bit_print(rl_16, 8, 8);
+
 	permute(rl_16, ip_1, 8, 8, g_ip1_table, 64);
+	ft_putstr("ip_1     ");
+	custom_bit_print(ip_1, 8, 8);
+
 	// We finally have our translated block
 	ft_memcpy(output_block, ip_1, sizeof(uint8_t) * 8);
 	for (int i = 0; i < 17; i++)
+	{
+		free(l[i]);
+		free(r[i]);
+	}
+	free(l);
+	free(r);
+}
+
+//------------------------------------------------------------------------------
+// OTHER STEP 2 : DECODE 64 BIT BLOCKS
+//------------------------------------------------------------------------------
+void			process_block_des_decrypt(uint8_t *block, uint8_t *output_block, t_des_subkeys *subkeys)
+{
+	uint8_t		**l;
+	uint8_t		**r;
+	uint8_t		ip[8];
+	uint8_t		rl_16[8];
+	uint8_t		ip_1[8];
+
+	(void)ip;
+	(void)block;
+	(void)output_block;
+	(void)subkeys;
+	(void)rl_16;
+
+	if ((l = malloc(sizeof(uint8_t *) * 17)) == NULL
+		|| (r = malloc(sizeof(uint8_t *) * 17)) == NULL)
+	{
+		ft_putstr("[Error] Bad malloc in process_block_des\n");
+		return ;
+	}
+	for (int i = 0; i < 17; i++)
+	{
+		l[i] = malloc(sizeof(uint8_t) * 8);
+		r[i] = malloc(sizeof(uint8_t) * 8);
+		if (!l[i] || !r[i])
+		{
+			ft_putstr("[Error] Bad malloc in process_block_des\n");
+			return ;
+		}
+	}
+
+	ft_memcpy(ip_1, block, sizeof(uint8_t) * 8);
+	ft_putstr("ip_1   d ");
+	custom_bit_print(ip_1, 8, 8);
+
+	permute(ip_1, rl_16, 8, 8, g_ip1_table, 64); // NOT GOOD. Probably need to write custom function for reverse-permutes
+
+	ft_putstr("rl_16  d ");
+	custom_bit_print(rl_16, 8, 8);
+	for (int i = 0; i < 1; i++)
 	{
 		free(l[i]);
 		free(r[i]);

@@ -155,11 +155,14 @@ typedef struct			s_des_subkeys
 	uint8_t				**k;
 }						t_des_subkeys;
 
-
+uint8_t					*get_translated_hex_input(char *hex_str,
+	size_t expected_size, char *name);
 e_des_operating_mode	parse_des(t_ssl_env *env, char **args);
 t_des_subkeys			*get_subkeys(uint8_t *key);
 void					free_subkeys(t_des_subkeys *sk);
-void					process_block_des(uint8_t *block, uint8_t *output_block,
-	t_des_subkeys *subkeys);
+void					process_block_des_encrypt(uint8_t *block,
+	uint8_t *output_block, t_des_subkeys *subkeys);
+void					process_block_des_decrypt(uint8_t *block,
+	uint8_t *output_block, t_des_subkeys *subkeys);
 
 #endif

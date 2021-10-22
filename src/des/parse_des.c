@@ -123,7 +123,7 @@ static e_des_operating_mode		parse_specific_des_command(char **args)
 		ret |= DES3 ;
 	if (args[1] == NULL)
 	{
-		ret |= ECB;
+		ret |= CBC;
 		return ret;
 	}
 	for (uint32_t j = 0; modes[j].mode != NULL; j++)

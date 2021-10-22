@@ -11,7 +11,7 @@ static void			display_des(t_ssl_data *output, char *target)
 		fd = open(target, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 		if (fd < 0)
 		{
-			ft_putstr("Cannot access file output '");
+			ft_putstr("[Error] display_des() : Cannot access file output '");
 			ft_putstr(target);
 			ft_putstr("'\n");
 			return ;
@@ -39,7 +39,8 @@ static void			pad_buffer_des(t_ssl_data *data)
 }
 
 //------------------------------------------------------------------------------
-void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, uint8_t *iv, e_des_operating_mode mode)
+void				process_input_des(t_ssl_data *input, t_ssl_data *output,
+	uint8_t *key, uint8_t *iv, e_des_operating_mode mode)
 {
 	const uint32_t	block_size = 8;
 	uint32_t		nb_blocks;
@@ -50,7 +51,7 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, u
 	subkeys = get_subkeys(key);
 	if ((output->data = malloc(input->size)) == NULL || subkeys == NULL)
 	{
-		ft_putstr("[Error] Bad malloc()\n");
+		ft_putstr("[Error] Bad malloc() in process_input_des()\n");
 		exit(EXIT_FAILURE);
 	}
 	output->size = input->size;
@@ -64,164 +65,91 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output, uint8_t *key, u
 			for (uint8_t j = 0; j < block_size; j++)
 				block[j] ^= prev_block[j];
 		}
-		process_block_des(input->data + i * block_size,
-			output->data + i * block_size, subkeys);
+		if (ft_testbit(mode, DECRYPT_BIT) == true)
+		{
+			process_block_des_decrypt(input->data + i * block_size,
+				output->data + i * block_size, subkeys);
+			break; // DEBUG REMOVE LATER
+		}
+		else
+			process_block_des_encrypt(input->data + i * block_size,
+				output->data + i * block_size, subkeys);
 	}
 	free_subkeys(subkeys);
 }
 
 //------------------------------------------------------------------------------
-static uint8_t		base_16(char c)
-{
-	const char		base[16] = "0123456789abcdef";
-
-	for (uint8_t i = 0; i < 16; i++)
-		if (base[i] == c)
-			return (i);
-	return (0);
-}
-
-//------------------------------------------------------------------------------
-bool				lowercase_and_check_hex_sanity(char *input, size_t size)
-{
-	for (uint32_t i = 0; i < size; i++)
-		if (input[i] >= 'A' && input[i] <= 'Z')
-			input[i] += 32;
-	for (uint32_t i = 0; i < size; i++)
-	{
-		if ((input[i] >= '0' && input[i] <= '9') || (input[i] >= 'a' && input[i] <= 'f'))
-			continue ;
-		ft_putstr("Invalid hex key value\n");
-		return (false);
-	}
-	return (true);
-}
-
-//------------------------------------------------------------------------------
-void				translate_key_from_hex_str(char *input, uint8_t *key, size_t expected_size)
-{
-	uint8_t span;
-	for (uint32_t i = 0; i < expected_size; i++)
-	{
-		span =  base_16(input[i]);
-		if (i % 2 == 0)
-		{
-			key[i / 2] += span << 4;
-		}
-		else
-		{
-			key[i / 2] += span;
-		}
-	}
-}
-
-//------------------------------------------------------------------------------
-static uint8_t					*get_des_keys_input(char *hex_key)
-{
-	bool				three_key = false;
-	uint8_t				*keys;
-	const size_t		expected_size = three_key == true ? 48 : 16;
-	const size_t		key_output_size = expected_size / 2;
-	t_ssl_data			key_input;
-	size_t				input_size;
-
-	ft_bzero(&key_input, sizeof(t_ssl_data));
-	if (hex_key == NULL)
-	{
-		ft_putstr("Missing key(s), please input (single string) : \n");
-		gather_full_input(&key_input, NULL);
-		key_input.data = realloc(key_input.data, key_input.size + 1);
-		((char*)key_input.data)[key_input.size] = '\0';
-		hex_key = key_input.data;
-	}
-	input_size = ft_strlen(hex_key);
-	if (input_size > expected_size)
-		ft_putstr("Hex string is too long, ignoring excess\n");
-	else if (input_size < expected_size)
-	{
-		ft_putstr("Hex string is too short, padding with zero bytes to length\n");
-		char *tmp = hex_key;
-		hex_key = malloc(expected_size + 1);
-		ft_bzero(hex_key, expected_size + 1);
-		ft_memcpy(hex_key, tmp, input_size);
-	}
-
-	if (lowercase_and_check_hex_sanity(hex_key, input_size) == false
-		|| (keys = malloc(sizeof(uint8_t) * key_output_size)) == NULL)
-		return (NULL);
-	ft_bzero(keys, sizeof(uint8_t) * key_output_size);
-	translate_key_from_hex_str(hex_key, keys, expected_size);
-	if (key_input.data != NULL)
-		free(key_input.data);
-	return keys;
-}
-
-//------------------------------------------------------------------------------
-static void						get_initialisation_vector(char *src, uint8_t *iv)
-{
-	(void)iv;
-	if (src == NULL)
-	{
-		ft_bzero(iv, 8);
-	}
-	else
-	{
-		if (ft_strlen(src) < 16)
-		{
-			ft_putstr("Provided IV is too short, will be zero-padded");
-		}
-	}
-}
-
-//------------------------------------------------------------------------------
 void				command_des(t_ssl_env *env, char **args)
 {
-	ft_putstr(">>command_des called\n");
-
 	t_ssl_data		*input;
 	t_ssl_data		*output;
-	uint8_t			*keys;
-	uint8_t			iv[8];
+	size_t			keys_str_size = 16; // 16  OR 48 IF DES3
+	size_t			iv_str_size = 16;
+	size_t			salt_str_size = 16;
+	uint8_t			*keys = NULL;
+	uint8_t			*iv = NULL;
+	uint8_t			*salt = NULL;
 	e_des_operating_mode	mode;
 
 	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
 	{
-		ft_putstr("Bad malloc()\n");
+		ft_putstr("[Error] Bad malloc() in command_des()\n");
 		exit(EXIT_FAILURE);
 	}
 	ft_bzero(input, sizeof(t_ssl_data));
 	ft_bzero(output, sizeof(t_ssl_data));
-	ft_bzero(iv, sizeof(uint8_t) * 8);
-
 	mode = parse_des(env, args);
 	if (env->flags.d == true)
 		mode |= DECRYPT;
-	get_initialisation_vector(env->flags.v_arg, iv);
-	if ((keys = get_des_keys_input(env->flags.k_arg)) == NULL)
+
+	// setup
+	if ((keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
 	{
-		ft_putstr("NULL KEYS\n");
+		ft_putstr("[Error] Bad key(s)\n");
 		return ;
 	}
-	if (env->flags.s == true)
+	if (ft_testbit(mode, ECB_BIT) == false
+		&& (iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
 	{
-		input->data = ft_strdup(env->flags.s_arg);
-		input->size = ft_strlen(env->flags.s_arg);
-		input->allocated_size = ft_strlen(env->flags.s_arg) + 1;
+		if (keys != NULL)
+			free(keys);
+		ft_putstr("[Error] Bad IV\n");
+		return ;
 	}
-	else if (env->flags.i == true)
+	if (env->flags.s == true
+		&& (iv = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
 	{
-		gather_full_input(input, env->flags.file_arg);
+		if (keys != NULL)
+			free(keys);
+		if (iv != NULL)
+			free(iv);
+		ft_putstr("[Error] Bad Salt\n");
+		return ;
 	}
 
+	// input
+	if (env->flags.i == true)
+		gather_full_input(input, env->flags.file_arg);
+	else
+		gather_full_input(input, NULL);
+
+	// process
 	process_input_des(input, output, keys, iv, mode);
+	
+	// output
 	if (env->flags.o == true)
 		display_des(output, env->flags.file_arg_out);
 	else
 		display_des(output, NULL);
-	ft_putstr("\n");
+
+	// cleanup
+	free(keys);
+	if (iv != NULL)
+		free(iv);
+	if (salt != NULL)
+		free(salt);
 	data_soft_reset(input);
 	data_soft_reset(output);
 	free(input);
 	free(output);
-	ft_putstr(">>command_des ended\n");
 }

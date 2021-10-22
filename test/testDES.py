@@ -17,11 +17,14 @@ def compare(mode, testfile):
 
     os.system("rm " + my)
     os.system("rm " + ref)
+    os.system("rm " + myd)
+    os.system("rm " + refd)
 
-    os.system("./ft_ssl " + mode + " -i " + testfile + " -o " + my + " -k " + key)
-#    os.system("./ft_ssl des -d -i " + my + " -o " + myd)
+    os.system("./ft_ssl " + mode + " -i " + testfile + " -o " + my + " -k " + key + " -v " + iv)
+    print("\n VS\n");
+    os.system("./ft_ssl " + mode + " -d -i " + my + " -o " + myd + " -k " + key + " -v " + iv)
     os.system("openssl " + mode + " -in " + testfile + " -out " + ref + " -K " + key + " -iv " + iv)
-#    os.system("openssl des -d -in " + ref + " -out " + refd)
+    os.system("openssl " + mode + " -d -in " + ref + " -out " + refd + " -K " + key + " -iv " + iv)
 
     print("[ENCRYPT] diff " + my + " VS " + ref)
     os.system("diff " + my + " " + ref)
