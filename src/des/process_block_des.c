@@ -43,25 +43,8 @@ void			custom_bit_lshift(uint8_t *key, uint8_t key_size, uint8_t bit_number_wrap
 		ft_set_bit_8(&key[key_size - 1], 0);
 }
 
-	/*
 //------------------------------------------------------------------------------
-void			anti_permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
-		uint8_t new_cell_size, const uint8_t *permutation_table, uint8_t permutations)
-{
-	uint8_t old_cell_number = 0;
-	uint8_t old_array_index = 0;
-	uint8_t new_cell_number = 0;
-	uint8_t new_array_index = 0;
-	for (uint32_t i = 0; i < permutations; i++)
-	{
-	
-	}
-	
-}
-*/
-
-//------------------------------------------------------------------------------
-static void			permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
+void			permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
 		uint8_t new_cell_size, const uint8_t *permutation_table, uint8_t permutations)
 {
 	uint8_t old_cell_number = 0;
@@ -85,80 +68,9 @@ static void			permute(uint8_t *old_key, uint8_t *new_key, uint8_t old_cell_size,
 }
 
 //------------------------------------------------------------------------------
-void			cd_tables(uint8_t *kplus, uint8_t **cd)
-{
-	for (uint8_t j = 0; j < 8; j++)
-	{
-		cd[0][j] = kplus[j];
-	}
-	for (uint8_t i = 1; i < 17; i++)
-	{
-		for (uint8_t j = 0; j < 8; j++)
-		{
-			cd[i][j] = cd[i - 1][j];
-		}
-		for (uint8_t j = 0; j < g_shift_table[i - 1]; j++)
-		{
-			custom_bit_lshift(cd[i], 4, 7);
-			custom_bit_lshift(&cd[i][4], 4, 7);
-		}
-	}
-}
-
+// STEP 2 : ENCODE (AND DECODE) 64 BIT BLOCKS
 //------------------------------------------------------------------------------
-void			free_subkeys(t_des_subkeys *sk)
-{
-	for (int i = 0; i < 17; i++)
-	{
-		free(sk->cd[i]);
-		free(sk->k[i]);
-	}
-	free(sk->cd);
-	free(sk->k);
-	free(sk);
-}
-
-//------------------------------------------------------------------------------
-// STEP 1 : CALCULATE SUBKEYS
-//------------------------------------------------------------------------------
-t_des_subkeys			*get_subkeys(uint8_t * key)
-{
-	t_des_subkeys		*ret;
-
-	if ((ret = malloc(sizeof(t_des_subkeys))) == NULL)
-		return (NULL);
-	ret->cd = malloc(sizeof(uint8_t *) * 17);
-	ret->k = malloc(sizeof(uint8_t *) * 17);
-	if (!ret->cd || !ret->k)
-	{
-		ft_putstr("[Error] Bad malloc in des subkey allocation\n");
-		return (NULL);
-	}
-	for (int i = 0; i < 17; i++)
-	{
-		ret->cd[i] = malloc(sizeof(uint8_t) * 8);
-		ret->k[i] = malloc(sizeof(uint8_t) * 8);
-		if (!ret->cd[i] || !ret->k[i])
-		{
-			ft_putstr("[Error] Bad malloc in des subkey allocation\n");
-			return (NULL);
-		}
-		ft_bzero(ret->cd[i], sizeof(uint8_t) * 8);
-		ft_bzero(ret->k[i], sizeof(uint8_t) * 8);
-	}
-	ft_bzero(ret->kplus, sizeof(uint8_t) * 8);
-	permute(key, ret->kplus, 8, 7, g_pc1_table, 56);
-	cd_tables(ret->kplus, ret->cd);
-	for (int i = 0; i < 17; i++)
-		permute(ret->cd[i], ret->k[i], 7, 6, g_pc2_table, 48);
-
-	return (ret);
-}
-
-//------------------------------------------------------------------------------
-// STEP 2 : ENCODE 64 BIT BLOCKS
-//------------------------------------------------------------------------------
-void			process_block_des_encrypt(uint8_t *block, uint8_t *output_block, t_des_subkeys *subkeys)
+void			process_block_des(uint8_t *block, uint8_t *output_block, uint8_t **k_subkeys, bool decrypt)
 {
 	uint8_t		**l;
 	uint8_t		**r;
@@ -220,7 +132,10 @@ void			process_block_des_encrypt(uint8_t *block, uint8_t *output_block, t_des_su
 			uint8_t row_s = 0; // from first and last bits of ek_xor
 			uint8_t col_s = 0; // from the 4 bits in between
 
-			ek_xor[j] = subkeys->k[i][j] ^ e[j];
+			if (decrypt == true)
+				ek_xor[j] = k_subkeys[17 - i][j] ^ e[j];
+			else
+				ek_xor[j] = k_subkeys[i][j] ^ e[j];
 			if (ft_testbit(ek_xor[j], 0))
 				row_s += 1;
 			if (ft_testbit(ek_xor[j], 5))
@@ -245,68 +160,11 @@ void			process_block_des_encrypt(uint8_t *block, uint8_t *output_block, t_des_su
 		rl_16[i] = (r[16][i * 2] << 4) + r[16][i * 2 + 1];
 		rl_16[i + 4] = (l[16][i * 2] << 4) + l[16][i * 2 + 1];
 	}
-
-	ft_putstr("rl_16    ");
-	custom_bit_print(rl_16, 8, 8);
-
 	permute(rl_16, ip_1, 8, 8, g_ip1_table, 64);
-	ft_putstr("ip_1     ");
-	custom_bit_print(ip_1, 8, 8);
 
 	// We finally have our translated block
 	ft_memcpy(output_block, ip_1, sizeof(uint8_t) * 8);
 	for (int i = 0; i < 17; i++)
-	{
-		free(l[i]);
-		free(r[i]);
-	}
-	free(l);
-	free(r);
-}
-
-//------------------------------------------------------------------------------
-// OTHER STEP 2 : DECODE 64 BIT BLOCKS
-//------------------------------------------------------------------------------
-void			process_block_des_decrypt(uint8_t *block, uint8_t *output_block, t_des_subkeys *subkeys)
-{
-	uint8_t		**l;
-	uint8_t		**r;
-	uint8_t		ip[8];
-	uint8_t		rl_16[8];
-	uint8_t		ip_1[8];
-
-	(void)ip;
-	(void)block;
-	(void)output_block;
-	(void)subkeys;
-	(void)rl_16;
-
-	if ((l = malloc(sizeof(uint8_t *) * 17)) == NULL
-		|| (r = malloc(sizeof(uint8_t *) * 17)) == NULL)
-	{
-		ft_putstr("[Error] Bad malloc in process_block_des\n");
-		return ;
-	}
-	for (int i = 0; i < 17; i++)
-	{
-		l[i] = malloc(sizeof(uint8_t) * 8);
-		r[i] = malloc(sizeof(uint8_t) * 8);
-		if (!l[i] || !r[i])
-		{
-			ft_putstr("[Error] Bad malloc in process_block_des\n");
-			return ;
-		}
-	}
-
-	ft_memcpy(ip_1, block, sizeof(uint8_t) * 8);
-	ft_putstr("ip_1   d ");
-	custom_bit_print(ip_1, 8, 8);
-
-	permute(ip_1, rl_16, 8, 8, g_ip1_table, 64); // NOT GOOD. Probably need to write custom function for reverse-permutes
-
-	ft_putstr("rl_16  d ");
-	custom_bit_print(rl_16, 8, 8);
-	for (int i = 0; i < 1; i++)
 	{
 		free(l[i]);
 		free(r[i]);

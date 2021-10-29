@@ -40,16 +40,15 @@ static void			pad_buffer_des(t_ssl_data *data)
 
 //------------------------------------------------------------------------------
 void				process_input_des(t_ssl_data *input, t_ssl_data *output,
-	uint8_t *key, uint8_t *iv, e_des_operating_mode mode)
+	t_des_run_data *run_data, t_des_subkeys *subkeys, e_des_operating_mode mode)
 {
 	const uint32_t	block_size = 8;
 	uint32_t		nb_blocks;
-	t_des_subkeys	*subkeys;
 
-	pad_buffer_des(input);
+	if (ft_testbit(mode, DECRYPT_BIT) == false)
+		pad_buffer_des(input);
 	nb_blocks = input->size / block_size;
-	subkeys = get_subkeys(key);
-	if ((output->data = malloc(input->size)) == NULL || subkeys == NULL)
+	if ((output->data = malloc(input->size)) == NULL)
 	{
 		ft_putstr("[Error] Bad malloc() in process_input_des()\n");
 		exit(EXIT_FAILURE);
@@ -58,37 +57,163 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	output->allocated_size = output->size;
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		if (ft_testbit(mode, CBC_BIT) == true) // CBC bit test for XOR with previous block
+		// PRE PROCESS
+		if (ft_testbit(mode, CBC_BIT) == true && ft_testbit(mode, DECRYPT_BIT) == false)
 		{
 			uint8_t *block = input->data + i * block_size;
-			uint8_t *prev_block = (i == 0) ? iv : output->data + i * block_size - block_size;
+			uint8_t *prev_block = (i == 0) ? run_data->iv : output->data + (i - 1) * block_size;
 			for (uint8_t j = 0; j < block_size; j++)
 				block[j] ^= prev_block[j];
 		}
-		if (ft_testbit(mode, DECRYPT_BIT) == true)
+
+		// PROCESS
+		process_block_des(input->data + i * block_size,
+			output->data + i * block_size, subkeys->k, ft_testbit(mode, DECRYPT_BIT));
+
+		// POST PROCESS
+		if (ft_testbit(mode, CBC_BIT) == true && ft_testbit(mode, DECRYPT_BIT) == true)
 		{
-			process_block_des_decrypt(input->data + i * block_size,
-				output->data + i * block_size, subkeys);
-			break; // DEBUG REMOVE LATER
+			uint8_t *block = output->data + i * block_size;
+			uint8_t *prev_block = (i == 0) ? run_data->iv : input->data + (i - 1) * block_size;
+			for (uint8_t j = 0; j < block_size; j++)
+				block[j] ^= prev_block[j];
 		}
-		else
-			process_block_des_encrypt(input->data + i * block_size,
-				output->data + i * block_size, subkeys);
 	}
-	free_subkeys(subkeys);
+	//	PADDING REMOVAL
+	if (ft_testbit(mode, DECRYPT_BIT) == true)
+		output->size -= ((uint8_t *)output->data)[output->size - 1];
 }
 
 //------------------------------------------------------------------------------
-void				command_des(t_ssl_env *env, char **args)
+static void			free_run_data(t_des_run_data *data)
 {
-	t_ssl_data		*input;
-	t_ssl_data		*output;
-	size_t			keys_str_size = 16; // 16  OR 48 IF DES3
+	if (data->keys != NULL)
+		free(data->keys);
+	if (data->iv != NULL)
+		free(data->iv);
+	if (data->salt != NULL)
+		free(data->salt);
+	if (data != NULL)
+		free(data);
+}
+
+//------------------------------------------------------------------------------
+// STEP 1 : CALCULATE SUBKEYS
+//------------------------------------------------------------------------------
+static void			free_subkeys(t_des_subkeys *sk)
+{
+	for (int i = 0; i < 17; i++)
+	{
+		if (sk->cd[i] != NULL)
+			free(sk->cd[i]);
+		if (sk->k[i] != NULL)
+			free(sk->k[i]);
+	}
+	if (sk->cd != NULL)
+		free(sk->cd);
+	if (sk->k != NULL)
+		free(sk->k);
+}
+
+//------------------------------------------------------------------------------
+static void				calculate_subkeys(t_des_subkeys *sk, uint8_t *key)
+{
+	permute(key, sk->kplus, 8, 7, g_pc1_table, 56);
+	for (uint8_t j = 0; j < 8; j++)
+	{
+		sk->cd[0][j] = sk->kplus[j];
+	}
+	for (uint8_t i = 1; i < 17; i++)
+	{
+		for (uint8_t j = 0; j < 8; j++)
+		{
+			sk->cd[i][j] = sk->cd[i - 1][j];
+		}
+		for (uint8_t j = 0; j < g_shift_table[i - 1]; j++)
+		{
+			custom_bit_lshift(sk->cd[i], 4, 7);
+			custom_bit_lshift(&sk->cd[i][4], 4, 7);
+		}
+	}
+	for (int i = 0; i < 17; i++)
+		permute(sk->cd[i], sk->k[i], 7, 6, g_pc2_table, 48);
+}
+
+//------------------------------------------------------------------------------
+static t_des_subkeys	*allocate_subkeys()
+{
+	t_des_subkeys *ret;
+
+	if ((ret = malloc(sizeof(t_des_subkeys))) == NULL)
+		return (NULL);
+	ft_bzero(ret, sizeof(t_des_subkeys));
+
+	ret->cd = malloc(sizeof(uint8_t *) * 17);
+	ret->k = malloc(sizeof(uint8_t *) * 17);
+	if (!ret->cd || !ret->k)
+	{
+		ft_putstr("[Error] Bad malloc in des subkey allocation\n");
+		return (NULL);
+	}
+	for (int i = 0; i < 17; i++)
+	{
+		ret->cd[i] = malloc(sizeof(uint8_t) * 8);
+		ret->k[i] = malloc(sizeof(uint8_t) * 8);
+		if (!ret->cd[i] || !ret->k[i])
+		{
+			ft_putstr("[Error] Bad malloc in des subkey allocation\n");
+			return (NULL);
+		}
+		ft_bzero(ret->cd[i], sizeof(uint8_t) * 8);
+		ft_bzero(ret->k[i], sizeof(uint8_t) * 8);
+	}
+	ft_bzero(ret->kplus, sizeof(uint8_t) * 8);
+	return (ret);
+}
+
+//------------------------------------------------------------------------------
+t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
+{
+	size_t			keys_str_size = 16; // 16 OR 48 ? IF DES3 ?
 	size_t			iv_str_size = 16;
 	size_t			salt_str_size = 16;
-	uint8_t			*keys = NULL;
-	uint8_t			*iv = NULL;
-	uint8_t			*salt = NULL;
+	t_des_run_data		*ret = NULL;
+
+	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
+		return (NULL);
+	ft_bzero(ret, sizeof(t_des_run_data));
+
+	// Geting arguments when required
+	if ((ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
+	{
+		ft_putstr("[Error] Bad key(s)\n");
+		free_run_data(ret);
+		return NULL ;
+	}
+	if (ft_testbit(mode, ECB_BIT) == false
+		&& (ret->iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
+	{
+		ft_putstr("[Error] Bad IV\n");
+		free_run_data(ret);
+		return NULL;
+	}
+	if (env->flags.s == true
+		&& (ret->iv = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
+	{
+		free_run_data(ret);
+		ft_putstr("[Error] Bad Salt\n");
+		return NULL;
+	}
+	return (ret);
+}
+
+//------------------------------------------------------------------------------
+void						command_des(t_ssl_env *env, char **args)
+{
+	t_ssl_data				*input;
+	t_ssl_data				*output;
+	t_des_run_data			*run_data;
+	t_des_subkeys			*subkeys;
 	e_des_operating_mode	mode;
 
 	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
@@ -102,30 +227,9 @@ void				command_des(t_ssl_env *env, char **args)
 	if (env->flags.d == true)
 		mode |= DECRYPT;
 
-	// setup
-	if ((keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
-	{
-		ft_putstr("[Error] Bad key(s)\n");
-		return ;
-	}
-	if (ft_testbit(mode, ECB_BIT) == false
-		&& (iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
-	{
-		if (keys != NULL)
-			free(keys);
-		ft_putstr("[Error] Bad IV\n");
-		return ;
-	}
-	if (env->flags.s == true
-		&& (iv = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
-	{
-		if (keys != NULL)
-			free(keys);
-		if (iv != NULL)
-			free(iv);
-		ft_putstr("[Error] Bad Salt\n");
-		return ;
-	}
+	run_data = get_run_data(env, mode);
+	subkeys = allocate_subkeys();
+	calculate_subkeys(subkeys, run_data->keys);
 
 	// input
 	if (env->flags.i == true)
@@ -134,8 +238,8 @@ void				command_des(t_ssl_env *env, char **args)
 		gather_full_input(input, NULL);
 
 	// process
-	process_input_des(input, output, keys, iv, mode);
-	
+	process_input_des(input, output, run_data, subkeys, mode);
+
 	// output
 	if (env->flags.o == true)
 		display_des(output, env->flags.file_arg_out);
@@ -143,11 +247,8 @@ void				command_des(t_ssl_env *env, char **args)
 		display_des(output, NULL);
 
 	// cleanup
-	free(keys);
-	if (iv != NULL)
-		free(iv);
-	if (salt != NULL)
-		free(salt);
+	free_run_data(run_data);
+	free_subkeys(subkeys);
 	data_soft_reset(input);
 	data_soft_reset(output);
 	free(input);

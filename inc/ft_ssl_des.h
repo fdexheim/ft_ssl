@@ -148,6 +148,14 @@ typedef struct		s_des_operating_mode
 }					t_des_operating_mode;
 
 
+typedef struct			s_des_run_data
+{
+	uint8_t				*keys;
+	uint8_t				*iv;
+	uint8_t				*salt;
+}						t_des_run_data;
+
+
 typedef struct			s_des_subkeys
 {
 	uint8_t				kplus[8];
@@ -155,14 +163,17 @@ typedef struct			s_des_subkeys
 	uint8_t				**k;
 }						t_des_subkeys;
 
+
 uint8_t					*get_translated_hex_input(char *hex_str,
 	size_t expected_size, char *name);
 e_des_operating_mode	parse_des(t_ssl_env *env, char **args);
-t_des_subkeys			*get_subkeys(uint8_t *key);
-void					free_subkeys(t_des_subkeys *sk);
-void					process_block_des_encrypt(uint8_t *block,
-	uint8_t *output_block, t_des_subkeys *subkeys);
-void					process_block_des_decrypt(uint8_t *block,
-	uint8_t *output_block, t_des_subkeys *subkeys);
+t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode);
+void					process_block_des(uint8_t *block,
+	uint8_t *output_block, uint8_t **subkeys_k, bool decrypt);
+void					permute(uint8_t *old_key, uint8_t *new_key,
+	uint8_t old_cell_size, uint8_t new_cell_size,
+	const uint8_t *permutation_table, uint8_t permutations);
+void					custom_bit_lshift(uint8_t *key, uint8_t key_size,
+	uint8_t bit_number_wrap_point);
 
 #endif
