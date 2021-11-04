@@ -15,7 +15,8 @@ NAME =	libft.a
 INCLUDES_PATH = ./inc/
 
 SRC_PATH = ./src/
-SRC_NAME =	argv.c argv2.c ft_atoi.c ft_bzero.c ft_free_string_tab.c \
+SRC_NAME =	argv.c argv2.c bootleg_alloc.c ft_atoi.c ft_bzero.c \
+			ft_free_string_tab.c \
 			ft_get_full_input.c \
 			ft_get_string_table_size.c \
 			ft_directory_exists.c ft_dump_brute.c ft_dump_string_array.c \

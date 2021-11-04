@@ -34,6 +34,8 @@ void			ft_bzero(void *s, size_t n);
 void			ft_free_string_tab(char **tab);
 char			*ft_get_full_input();
 size_t			ft_get_string_table_size(char **table);
+void			**bootleg_calloc(size_t n_elements, size_t element_size);
+void			free_array(void **array);
 int				ft_atoi(char *src);
 bool			ft_directory_exists(char *access);
 void			ft_dump_brute(void *data, uint32_t size);

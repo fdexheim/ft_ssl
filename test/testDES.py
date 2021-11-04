@@ -15,15 +15,21 @@ def compare(mode, testfile):
     os.system("rm " + myd)
     os.system("rm " + refd)
 
-    os.system("./ft_ssl " + mode + " -i " + testfile + " -o " + my + " -k " + key + " -v " + iv)
-    os.system("./ft_ssl " + mode + " -d -i " + my + " -o " + myd + " -k " + key + " -v " + iv)
+    print("--- OPENSSL ENCRYPT ---")
     os.system("openssl " + mode + " -in " + testfile + " -out " + ref + " -K " + key + " -iv " + iv)
+    print("--- OPENSSL DECRYPT ---")
     os.system("openssl " + mode + " -d -in " + ref + " -out " + refd + " -K " + key + " -iv " + iv)
+    print("--- FT_SSL ENCRYPT ---")
+    os.system("./ft_ssl " + mode + " -i " + testfile + " -o " + my + " -k " + key + " -v " + iv)
+    print("--- FT_SSL DECRYPT ---")
+    os.system("./ft_ssl " + mode + " -d -i " + my + " -o " + myd + " -k " + key + " -v " + iv)
 
+    print("")
     print("[ENCRYPT] diff " + my + " VS " + ref)
     os.system("diff " + my + " " + ref)
     print("[DECRYPT] diff " + myd + " VS " + refd)
     os.system("diff " + myd + " " + refd)
+    print("")
 
     print("cat my  (" + str(os.path.getsize(my)) + " bytes)")
     os.system("cat " + my)

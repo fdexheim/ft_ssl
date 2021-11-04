@@ -1,5 +1,6 @@
 #include "../../inc/ft_ssl.h"
 #include "../../inc/ft_ssl_des.h"
+#include "../../inc/ft_ssl_base64.h"
 
 //------------------------------------------------------------------------------
 static void			display_des(t_ssl_data *output, char *target)
@@ -102,17 +103,13 @@ static void			free_run_data(t_des_run_data *data)
 //------------------------------------------------------------------------------
 static void			free_subkeys(t_des_subkeys *sk)
 {
-	for (int i = 0; i < 17; i++)
-	{
-		if (sk->cd[i] != NULL)
-			free(sk->cd[i]);
-		if (sk->k[i] != NULL)
-			free(sk->k[i]);
-	}
+	if (sk == NULL)
+		return ;
 	if (sk->cd != NULL)
-		free(sk->cd);
-	if (sk->k != NULL)
-		free(sk->k);
+		free_array((void*)sk->cd);
+	if (sk->cd != NULL)
+		free_array((void*)sk->k);
+	free(sk);
 }
 
 //------------------------------------------------------------------------------
@@ -147,26 +144,8 @@ static t_des_subkeys	*allocate_subkeys()
 	if ((ret = malloc(sizeof(t_des_subkeys))) == NULL)
 		return (NULL);
 	ft_bzero(ret, sizeof(t_des_subkeys));
-
-	ret->cd = malloc(sizeof(uint8_t *) * 17);
-	ret->k = malloc(sizeof(uint8_t *) * 17);
-	if (!ret->cd || !ret->k)
-	{
-		ft_putstr("[Error] Bad malloc in des subkey allocation\n");
-		return (NULL);
-	}
-	for (int i = 0; i < 17; i++)
-	{
-		ret->cd[i] = malloc(sizeof(uint8_t) * 8);
-		ret->k[i] = malloc(sizeof(uint8_t) * 8);
-		if (!ret->cd[i] || !ret->k[i])
-		{
-			ft_putstr("[Error] Bad malloc in des subkey allocation\n");
-			return (NULL);
-		}
-		ft_bzero(ret->cd[i], sizeof(uint8_t) * 8);
-		ft_bzero(ret->k[i], sizeof(uint8_t) * 8);
-	}
+	ret->cd = (uint8_t**)bootleg_calloc(17, sizeof(uint8_t) * 8);
+	ret->k = (uint8_t**)bootleg_calloc(17, sizeof(uint8_t) * 8);
 	ft_bzero(ret->kplus, sizeof(uint8_t) * 8);
 	return (ret);
 }
@@ -174,9 +153,9 @@ static t_des_subkeys	*allocate_subkeys()
 //------------------------------------------------------------------------------
 t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 {
-	size_t			keys_str_size = 16; // 16 OR 48 ? IF DES3 ?
-	size_t			iv_str_size = 16;
-	size_t			salt_str_size = 16;
+	size_t				keys_str_size = 16; // 16 OR 48 ? IF DES3 ?
+	size_t				iv_str_size = 16;
+	size_t				salt_str_size = 16;
 	t_des_run_data		*ret = NULL;
 
 	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
@@ -210,19 +189,13 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 //------------------------------------------------------------------------------
 void						command_des(t_ssl_env *env, char **args)
 {
-	t_ssl_data				*input;
-	t_ssl_data				*output;
+	t_ssl_data				*input = get_new_data_struct();
+	t_ssl_data				*output = get_new_data_struct();
+	t_ssl_data				*base64_put = get_new_data_struct();
 	t_des_run_data			*run_data;
 	t_des_subkeys			*subkeys;
 	e_des_operating_mode	mode;
 
-	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
-	{
-		ft_putstr("[Error] Bad malloc() in command_des()\n");
-		exit(EXIT_FAILURE);
-	}
-	ft_bzero(input, sizeof(t_ssl_data));
-	ft_bzero(output, sizeof(t_ssl_data));
 	mode = parse_des(env, args);
 	if (env->flags.d == true)
 		mode |= DECRYPT;
@@ -232,25 +205,32 @@ void						command_des(t_ssl_env *env, char **args)
 	calculate_subkeys(subkeys, run_data->keys);
 
 	// input
-	if (env->flags.i == true)
-		gather_full_input(input, env->flags.file_arg);
-	else
-		gather_full_input(input, NULL);
+	gather_full_input(input, env->flags.file_arg);
 
 	// process
-	process_input_des(input, output, run_data, subkeys, mode);
+	// case when input to decrypt was base64'd during encryption
+	if (env->flags.a == true && env->flags.d == true)
+	{
+		process_input_base64(input, base64_put, env->flags.d);
+		process_input_des(base64_put, output, run_data, subkeys, mode);
+	}
+	else
+		process_input_des(input, output, run_data, subkeys, mode);
 
 	// output
-	if (env->flags.o == true)
-		display_des(output, env->flags.file_arg_out);
+	// case where encrypted output has to be base64'd before output
+	if (env->flags.a == true && env->flags.d == false)
+	{
+		process_input_base64(output, base64_put, env->flags.d);
+		display_base64(base64_put, env->flags.file_arg_out, env->flags.d);
+	}
 	else
-		display_des(output, NULL);
+		display_des(output, env->flags.file_arg_out);
 
 	// cleanup
 	free_run_data(run_data);
 	free_subkeys(subkeys);
-	data_soft_reset(input);
-	data_soft_reset(output);
-	free(input);
-	free(output);
+	clean_data_struct(input);
+	clean_data_struct(output);
+	clean_data_struct(base64_put);
 }

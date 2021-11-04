@@ -78,22 +78,9 @@ void			process_block_des(uint8_t *block, uint8_t *output_block, uint8_t **k_subk
 	uint8_t		rl_16[8];
 	uint8_t		ip_1[8];
 
-	if ((l = malloc(sizeof(uint8_t *) * 17)) == NULL
-		|| (r = malloc(sizeof(uint8_t *) * 17)) == NULL)
-	{
-		ft_putstr("[Error] Bad malloc in process_block_des\n");
-		return ;
-	}
-	for (int i = 0; i < 17; i++)
-	{
-		l[i] = malloc(sizeof(uint8_t) * 8);
-		r[i] = malloc(sizeof(uint8_t) * 8);
-		if (!l[i] || !r[i])
-		{
-			ft_putstr("[Error] Bad malloc in process_block_des\n");
-			return ;
-		}
-	}
+	l = (uint8_t**)bootleg_calloc(17, sizeof(uint8_t) * 8);
+	r = (uint8_t**)bootleg_calloc(17, sizeof(uint8_t) * 8);
+	
 	// get ip with ip table permutation
 	ft_bzero(ip, sizeof(uint8_t) * 8);
 	permute(block, ip, 8, 8, g_ip_table, 64);
@@ -164,11 +151,6 @@ void			process_block_des(uint8_t *block, uint8_t *output_block, uint8_t **k_subk
 
 	// We finally have our translated block
 	ft_memcpy(output_block, ip_1, sizeof(uint8_t) * 8);
-	for (int i = 0; i < 17; i++)
-	{
-		free(l[i]);
-		free(r[i]);
-	}
-	free(l);
-	free(r);
+	free_array((void**)l);
+	free_array((void**)r);
 }

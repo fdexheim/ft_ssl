@@ -94,6 +94,8 @@ void						process_input_512(t_ssl_data *input, t_ssl_data *output);
 
 void						gather_full_input(t_ssl_data *input, char *path);
 void						data_soft_reset(t_ssl_data *data);
+t_ssl_data					*get_new_data_struct();
+void						clean_data_struct(t_ssl_data *toclean);
 void						usage(void);
 void						close_env(t_ssl_env *env);
 

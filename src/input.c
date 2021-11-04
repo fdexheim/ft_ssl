@@ -48,8 +48,28 @@ void			gather_full_input(t_ssl_data *input, char *path)
 void				data_soft_reset(t_ssl_data *data)
 {
 	if (data->data != NULL && data->allocated_size > 0)
-		free(data);
+		free(data->data);
 	data->size = 0;
 	data->allocated_size = 0;
 	data->data = NULL;
+}
+
+//------------------------------------------------------------------------------
+t_ssl_data			*get_new_data_struct()
+{
+	t_ssl_data		*ret;
+	if ((ret = (t_ssl_data*)malloc(sizeof(t_ssl_data))) == NULL)
+	{
+		ft_putstr("[Error] malloc() call failed in get_new_data()\n");
+		exit(EXIT_FAILURE);
+	}
+	ft_bzero(ret, sizeof(t_ssl_data));
+	return (ret);
+}
+
+//------------------------------------------------------------------------------
+void						clean_data_struct(t_ssl_data *toclean)
+{
+	data_soft_reset(toclean);
+	free(toclean);
 }

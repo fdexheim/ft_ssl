@@ -2,7 +2,8 @@
 #include "../../inc/ft_ssl_base64.h"
 
 //------------------------------------------------------------------------------
-static void			write_base64(int fd, char *output, bool d, size_t output_size)
+static void			write_base64(int fd, char *output, bool d,
+	size_t output_size)
 {
 	size_t			iter = output_size / 64;
 
@@ -22,25 +23,26 @@ static void			write_base64(int fd, char *output, bool d, size_t output_size)
 }
 
 //------------------------------------------------------------------------------
-static void			display_base64(t_ssl_env *env, t_ssl_data *output)
+void				display_base64(t_ssl_data *output, char *file_output,
+	bool decrypt)
 {
 	int				fd;
 
-	if (env->flags.o == true)
+	if (file_output != NULL)
 	{
-		fd = open(env->flags.file_arg_out, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		fd = open(file_output, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 		if (fd < 0)
 		{
 			ft_putstr("Cannot access file output '");
-			ft_putstr(env->flags.file_arg_out);
+			ft_putstr(file_output);
 			ft_putstr("'\n");
 			return ;
 		}
-		write_base64(fd, output->data, env->flags.d, output->size);
+		write_base64(fd, output->data, decrypt, output->size);
 	}
 	else
 	{
-		write_base64(1, output->data, env->flags.d, output->size);
+		write_base64(1, output->data, decrypt, output->size);
 	}
 }
 
@@ -76,15 +78,19 @@ static void				pad_buffer_base64(t_ssl_data *data, bool decrypt)
 				j++;
 			}
 		}
-		free(data->data);
+		void *tofree = data->data;
 		data->data = file_ret;
 		data->size = j;
+		free(tofree);
 	}
 }
 
 //------------------------------------------------------------------------------
-void					process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decrypt)
+void					process_input_base64(t_ssl_data *input,
+	t_ssl_data *output, bool decrypt)
 {
+	pad_buffer_base64(input, decrypt);
+
 	const size_t		block_size = decrypt == true ? 4 : 3;
 	const size_t		output_block_size = decrypt == true ? 3 : 4;
 	const size_t		pad_size = input->size % block_size == 0 ?
@@ -127,18 +133,9 @@ void					process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decryp
 //------------------------------------------------------------------------------
 void				command_base64(t_ssl_env *env, char **args)
 {
-	t_ssl_data		*input;
-	t_ssl_data		*output;
-
+	t_ssl_data		*input = get_new_data_struct();
+	t_ssl_data		*output = get_new_data_struct();
 	parse_base64(env, args);
-	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
-	{
-		ft_putstr("[Error] Bad malloc()\n");
-		exit(EXIT_FAILURE);
-	}
-	ft_bzero(input, sizeof(t_ssl_data));
-	ft_bzero(output, sizeof(t_ssl_data));
-
 	if (env->flags.i == true)
 	{
 		gather_full_input(input, env->flags.file_arg);
@@ -151,11 +148,8 @@ void				command_base64(t_ssl_env *env, char **args)
 	}
 	else
 		gather_full_input(input, NULL);
-	pad_buffer_base64(input, env->flags.d);
 	process_input_base64(input, output, env->flags.d);
-	display_base64(env, output);
-	data_soft_reset(input);
-	data_soft_reset(output);
-	free(input);
-	free(output);
+	display_base64(output, env->flags.file_arg_out, env->flags.d);
+	clean_data_struct(input);
+	clean_data_struct(output);
 }
