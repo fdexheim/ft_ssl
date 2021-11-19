@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include "../libft/inc/libft.h"
 
 #define FT_SSL_INPUT_BUFF_SIZE 4096
@@ -80,7 +81,8 @@ size_t new_size);
 
 
 void						command_base64(t_ssl_env *env, char **args);
-void						process_input_base64(t_ssl_data *input, t_ssl_data *output, bool decrypt);
+void						process_input_base64(t_ssl_data *input, t_ssl_data *output,
+	bool decrypt);
 void						command_des(t_ssl_env *env, char **args);
 void						command_md5(t_ssl_env *env, char **args);
 void						process_input_md5(t_ssl_data *input, t_ssl_data *output);

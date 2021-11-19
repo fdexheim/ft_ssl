@@ -99,55 +99,11 @@ static void			free_run_data(t_des_run_data *data)
 }
 
 //------------------------------------------------------------------------------
-// STEP 1 : CALCULATE SUBKEYS
-//------------------------------------------------------------------------------
-static void			free_subkeys(t_des_subkeys *sk)
+void					generate_pseudorandom_salt(t_des_run_data *data)
 {
-	if (sk == NULL)
-		return ;
-	if (sk->cd != NULL)
-		free_array((void*)sk->cd);
-	if (sk->cd != NULL)
-		free_array((void*)sk->k);
-	free(sk);
-}
-
-//------------------------------------------------------------------------------
-static void				calculate_subkeys(t_des_subkeys *sk, uint8_t *key)
-{
-	permute(key, sk->kplus, 8, 7, g_pc1_table, 56);
-	for (uint8_t j = 0; j < 8; j++)
-	{
-		sk->cd[0][j] = sk->kplus[j];
-	}
-	for (uint8_t i = 1; i < 17; i++)
-	{
-		for (uint8_t j = 0; j < 8; j++)
-		{
-			sk->cd[i][j] = sk->cd[i - 1][j];
-		}
-		for (uint8_t j = 0; j < g_shift_table[i - 1]; j++)
-		{
-			custom_bit_lshift(sk->cd[i], 4, 7);
-			custom_bit_lshift(&sk->cd[i][4], 4, 7);
-		}
-	}
-	for (int i = 0; i < 17; i++)
-		permute(sk->cd[i], sk->k[i], 7, 6, g_pc2_table, 48);
-}
-
-//------------------------------------------------------------------------------
-static t_des_subkeys	*allocate_subkeys()
-{
-	t_des_subkeys *ret;
-
-	if ((ret = malloc(sizeof(t_des_subkeys))) == NULL)
-		return (NULL);
-	ft_bzero(ret, sizeof(t_des_subkeys));
-	ret->cd = (uint8_t**)bootleg_calloc(17, sizeof(uint8_t) * 8);
-	ret->k = (uint8_t**)bootleg_calloc(17, sizeof(uint8_t) * 8);
-	ft_bzero(ret->kplus, sizeof(uint8_t) * 8);
-	return (ret);
+	uint8_t				buff[8]= { 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f };
+	data->salt = malloc(sizeof(uint8_t) * 8);
+	ft_memcpy(data->salt, buff, 8);
 }
 
 //------------------------------------------------------------------------------
@@ -163,24 +119,36 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 	ft_bzero(ret, sizeof(t_des_run_data));
 
 	// Geting arguments when required
-	if ((ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
-	{
-		ft_putstr("[Error] Bad key(s)\n");
-		free_run_data(ret);
-		return NULL ;
-	}
-	if (ft_testbit(mode, ECB_BIT) == false
-		&& (ret->iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
-	{
-		ft_putstr("[Error] Bad IV\n");
-		free_run_data(ret);
-		return NULL;
-	}
+	// get salt
 	if (env->flags.s == true
 		&& (ret->iv = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
 	{
 		free_run_data(ret);
 		ft_putstr("[Error] Bad Salt\n");
+		return NULL;
+	}
+	else
+		generate_pseudorandom_salt(ret);
+	// get key (either from flag or pbkdf)
+	if (env->flags.k_arg == NULL
+		&& (bootleg_pbkdf(ret, NULL, (char *)ret->salt, 1, 8) == NULL))
+	{
+		ft_putstr("[Error] Bad pbkdf \n");
+		free_run_data(ret);
+		return NULL;
+	}
+	else if ((ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
+	{
+		ft_putstr("[Error] Bad key(s)\n");
+		free_run_data(ret);
+		return NULL;
+	}
+	// get IV if required
+	if (ft_testbit(mode, ECB_BIT) == false
+		&& (ret->iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
+	{
+		ft_putstr("[Error] Bad IV\n");
+		free_run_data(ret);
 		return NULL;
 	}
 	return (ret);
@@ -200,24 +168,33 @@ void						command_des(t_ssl_env *env, char **args)
 	if (env->flags.d == true)
 		mode |= DECRYPT;
 
-	run_data = get_run_data(env, mode);
+	if ((run_data = get_run_data(env, mode)) == NULL)
+	{
+		ft_putstr("Bad run_data()\n");
+		clean_data_struct(input);
+		clean_data_struct(output);
+		clean_data_struct(base64_put);
+		return ;
+	}
 	subkeys = allocate_subkeys();
 	calculate_subkeys(subkeys, run_data->keys);
 
-	// input
+	// INPUT
+	input = get_new_data_struct();
 	gather_full_input(input, env->flags.file_arg);
 
-	// process
+	// PROCESS
 	// case when input to decrypt was base64'd during encryption
 	if (env->flags.a == true && env->flags.d == true)
 	{
+		output = get_new_data_struct();
 		process_input_base64(input, base64_put, env->flags.d);
 		process_input_des(base64_put, output, run_data, subkeys, mode);
 	}
 	else
 		process_input_des(input, output, run_data, subkeys, mode);
 
-	// output
+	// OUTPUT
 	// case where encrypted output has to be base64'd before output
 	if (env->flags.a == true && env->flags.d == false)
 	{
@@ -227,7 +204,6 @@ void						command_des(t_ssl_env *env, char **args)
 	else
 		display_des(output, env->flags.file_arg_out);
 
-	// cleanup
 	free_run_data(run_data);
 	free_subkeys(subkeys);
 	clean_data_struct(input);

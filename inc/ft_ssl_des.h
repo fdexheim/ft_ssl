@@ -164,10 +164,22 @@ typedef struct			s_des_subkeys
 }						t_des_subkeys;
 
 
+void					free_subkeys(t_des_subkeys *sk);
+void					calculate_subkeys(t_des_subkeys *sk, uint8_t *key);
+t_des_subkeys			*allocate_subkeys();
+
 uint8_t					*get_translated_hex_input(char *hex_str,
 	size_t expected_size, char *name);
+void					print_hex_key(uint8_t *key, size_t size);
+void					translate_key_from_hex_str(char *input, uint8_t *key,
+	size_t expected_size);
+void					translate_hex_str_from_key(uint8_t *key, char *output,
+	size_t expected_size);
 e_des_operating_mode	parse_des(t_ssl_env *env, char **args);
-t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode);
+
+uint8_t			*bootleg_pbkdf(t_des_run_data *data, char *password,
+	char *salt, size_t nb_desired_iters, size_t dk_len);
+
 void					process_block_des(uint8_t *block,
 	uint8_t *output_block, uint8_t **subkeys_k, bool decrypt);
 void					permute(uint8_t *old_key, uint8_t *new_key,

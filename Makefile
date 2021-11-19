@@ -24,7 +24,9 @@ SRC_NAME = 	base64/parse_base64.c \
 			base64/process_block_base64.c \
 			base64/base64.c \
 			des/des.c \
+			des/key.c \
 			des/parse_des.c \
+			des/pbkdf.c \
 			des/process_block_des.c \
 			des/utils.c \
 			md5/md5.c \
@@ -72,7 +74,7 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 
 $(NAME):	$(OBJ)
-	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH)
+	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH) -lbsd
 	@echo "\033[1;32;m[Compilation Successful]\033[0m"
 	@echo "\033[1;36;m$(NAME)\033[1;32;m ready to go !\033[0m"
 
