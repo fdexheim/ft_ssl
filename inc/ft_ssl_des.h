@@ -177,8 +177,8 @@ void					translate_hex_str_from_key(uint8_t *key, char *output,
 	size_t expected_size);
 e_des_operating_mode	parse_des(t_ssl_env *env, char **args);
 
-uint8_t			*bootleg_pbkdf(t_des_run_data *data, char *password,
-	char *salt, size_t nb_desired_iters, size_t dk_len);
+uint8_t			*bootleg_pbkdf(char *password, char *salt,
+	size_t nb_desired_iters, size_t dk_len);
 
 void					process_block_des(uint8_t *block,
 	uint8_t *output_block, uint8_t **subkeys_k, bool decrypt);

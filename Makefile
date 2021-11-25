@@ -6,7 +6,7 @@
 #    By: fdexheim <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/26 14:02:22 by fdexheim          #+#    #+#              #
-#    Updated: 2021/10/22 13:10:58 by fdexheim         ###   ########.fr        #
+#    Updated: 2021/11/25 10:21:19 by fdexheim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,7 +74,7 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 
 $(NAME):	$(OBJ)
-	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH) -lbsd
+	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH)
 	@echo "\033[1;32;m[Compilation Successful]\033[0m"
 	@echo "\033[1;36;m$(NAME)\033[1;32;m ready to go !\033[0m"
 

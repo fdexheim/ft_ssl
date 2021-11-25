@@ -9,7 +9,7 @@ void				ft_dump_brute(void *data_start, uint32_t size)
 	{
 		if (i % 16 == 0)
 			printf("\n");
-		printf("%3hx ", ptr[i]);
+		printf("%3hhx ", ptr[i]);
 	}
 	printf("\n");
 }

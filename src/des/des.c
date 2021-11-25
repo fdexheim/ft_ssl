@@ -101,7 +101,8 @@ static void			free_run_data(t_des_run_data *data)
 //------------------------------------------------------------------------------
 void					generate_pseudorandom_salt(t_des_run_data *data)
 {
-	uint8_t				buff[8]= { 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f };
+//	uint8_t				buff[8]= { 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f };
+	uint8_t				buff[8]= { 0x61, 0x61,  0x61,  0x61,  0x61,  0x61,  0x61,  0x61 };
 	data->salt = malloc(sizeof(uint8_t) * 8);
 	ft_memcpy(data->salt, buff, 8);
 }
@@ -131,13 +132,14 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 		generate_pseudorandom_salt(ret);
 	// get key (either from flag or pbkdf)
 	if (env->flags.k_arg == NULL
-		&& (bootleg_pbkdf(ret, NULL, (char *)ret->salt, 1, 8) == NULL))
+		&& ((ret->keys = bootleg_pbkdf(env->flags.p_arg, (char *)ret->salt, 16, 8)) == NULL))
 	{
 		ft_putstr("[Error] Bad pbkdf \n");
 		free_run_data(ret);
 		return NULL;
 	}
-	else if ((ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
+	else if ((ret->keys == NULL)
+		&& (ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
 	{
 		ft_putstr("[Error] Bad key(s)\n");
 		free_run_data(ret);
@@ -151,6 +153,16 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 		free_run_data(ret);
 		return NULL;
 	}
+
+	ft_putstr("salt=");
+	print_hex_key((uint8_t *)ret->salt, 8);
+	ft_putstr("\nkey =");
+	print_hex_key(ret->keys, 8);
+	ft_putstr("\niv  =");
+	if (ret->iv)
+		print_hex_key((uint8_t *)ret->iv, 8);
+	ft_putstr("\n");
+
 	return (ret);
 }
 
