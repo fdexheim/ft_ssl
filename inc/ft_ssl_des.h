@@ -129,7 +129,8 @@ typedef enum		des_operating_mode
 	DECRYPT = 1,
 	CBC = 2,
 	ECB = 4,
-	DES3 = 8
+	DES3 = 8,
+	ADD_SALT = 16
 }					e_des_operating_mode;
 
 typedef enum		des_op_mode_bit
@@ -137,7 +138,8 @@ typedef enum		des_op_mode_bit
 	DECRYPT_BIT = 0,
 	CBC_BIT = 1,
 	ECB_BIT = 2,
-	DES3_BIT = 3
+	DES3_BIT = 3,
+	ADD_SALT_BIT = 4
 }					e_des_op_mode_bits;
 
 

@@ -6,7 +6,7 @@
 #    By: fdexheim <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/26 14:02:22 by fdexheim          #+#    #+#              #
-#    Updated: 2019/09/25 11:19:00 by fdexheim         ###   ########.fr        #
+#    Updated: 2021/11/26 17:17:38 by fdexheim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ SRC_NAME =	argv.c argv2.c bootleg_alloc.c ft_atoi.c ft_bzero.c \
 			ft_extract_bits.c ft_file_exists.c \
 			ft_file_or_directory_exists.c \
 			ft_is_flag.c ft_is_quote.c ft_isdigit.c ft_itoa_uint64.c \
-			ft_lowercase.c ft_memcpy.c \
+			ft_lowercase.c ft_memcmp.c ft_memcpy.c \
 			ft_put_size_t.c ft_put_size_t_hex.c ft_put_unsigned_char_hex.c \
 			ft_putchar.c ft_putnbr_bits.c ft_putstr.c ft_putstr_endl.c \
 			ft_reverse_endianess32.c \

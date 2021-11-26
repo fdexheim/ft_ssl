@@ -89,7 +89,7 @@ void						process_input_md5(t_ssl_data *input, t_ssl_data *output);
 void						command_sha224(t_ssl_env *env, char **args);
 void						process_input_sha224(t_ssl_data *input, t_ssl_data *output);
 void						command_sha256(t_ssl_env *env, char **args);
-void						process_input_256(t_ssl_data *input, t_ssl_data *output);
+void						process_input_sha256(t_ssl_data *input, t_ssl_data *output);
 void						command_sha512(t_ssl_env *env, char **args);
 void						process_input_512(t_ssl_data *input, t_ssl_data *output);
 

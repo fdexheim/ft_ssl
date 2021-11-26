@@ -11,6 +11,7 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 {
 	const size_t		buff_size = 256;
 	char				buff[buff_size];
+	char				buff_verif[buff_size];
 	uint8_t				*ret_key;
 	t_ssl_data			in;
 	t_ssl_data			out;
@@ -25,6 +26,12 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 		ft_bzero(buff, buff_size);
 		password = buff;
 		readpassphrase("password? ", buff, buff_size, 0);
+		readpassphrase("verif password? ", buff_verif, buff_size, 0);
+		if (ft_strcmp(buff, buff_verif))
+		{
+			ft_putstr("[Error] password verification failed\n");
+			return (NULL);
+		}
 	}
 
 	out_ptr->size = sizeof(uint8_t) * 8 + ft_strlen(password);
@@ -45,7 +52,7 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 		in_ptr = out_ptr;
 		out_ptr = swap;
 		data_soft_reset(out_ptr);
-		process_input_md5(in_ptr, out_ptr);
+		process_input_sha256(in_ptr, out_ptr);
 	}
 	if ((ret_key = malloc(dk_len)) == NULL)
 	{

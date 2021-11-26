@@ -44,38 +44,60 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	t_des_run_data *run_data, t_des_subkeys *subkeys, e_des_operating_mode mode)
 {
 	const uint32_t	block_size = 8;
-	uint32_t		nb_blocks;
+	size_t			salt_offset_src = 0;
+	size_t			salt_offset_dst = 0;
 
+	// handle padding and salt 
 	if (ft_testbit(mode, DECRYPT_BIT) == false)
+	{
 		pad_buffer_des(input);
-	nb_blocks = input->size / block_size;
-	if ((output->data = malloc(input->size)) == NULL)
+		if (ft_testbit(mode, ADD_SALT_BIT) == true)
+			salt_offset_dst = 16;
+	}
+	else if (ft_testbit(mode, ADD_SALT_BIT) == true)
+		salt_offset_src = 16;
+
+	// allocate output
+	output->size = input->size + salt_offset_dst - salt_offset_src;
+	output->allocated_size = output->size;
+	if ((output->data = malloc(output->size)) == NULL)
 	{
 		ft_putstr("[Error] Bad malloc() in process_input_des()\n");
 		exit(EXIT_FAILURE);
 	}
-	output->size = input->size;
-	output->allocated_size = output->size;
+	if (ft_testbit(mode, DECRYPT_BIT) == false && ft_testbit(mode, ADD_SALT_BIT) == true)
+	{
+		ft_memcpy(output->data, "Salted__", 8);
+		ft_memcpy(output->data + 8, run_data->salt , 8);
+	}
+
+	uint32_t nb_blocks = (input->size - salt_offset_src) / block_size;
+	printf("salt_offset_src = %ld salt_offset_dst = %ld\n", salt_offset_src, salt_offset_dst);
+	printf("input size = %ld, output size = %ld nb_blocks = %d\n", input->size, output->size, nb_blocks);
+
+	// iteration on all blocks
+	printf("processing blocks\n");
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
 		// PRE PROCESS
 		if (ft_testbit(mode, CBC_BIT) == true && ft_testbit(mode, DECRYPT_BIT) == false)
 		{
-			uint8_t *block = input->data + i * block_size;
-			uint8_t *prev_block = (i == 0) ? run_data->iv : output->data + (i - 1) * block_size;
+			uint8_t *block = input->data + salt_offset_src + i * block_size;
+			uint8_t *prev_block = (i == 0) ? run_data->iv : output->data + salt_offset_dst + (i - 1) * block_size;
 			for (uint8_t j = 0; j < block_size; j++)
 				block[j] ^= prev_block[j];
 		}
 
 		// PROCESS
-		process_block_des(input->data + i * block_size,
-			output->data + i * block_size, subkeys->k, ft_testbit(mode, DECRYPT_BIT));
+		process_block_des(input->data + salt_offset_src + i * block_size,
+			output->data + salt_offset_dst + i * block_size,
+			subkeys->k, ft_testbit(mode, DECRYPT_BIT));
 
 		// POST PROCESS
 		if (ft_testbit(mode, CBC_BIT) == true && ft_testbit(mode, DECRYPT_BIT) == true)
 		{
-			uint8_t *block = output->data + i * block_size;
-			uint8_t *prev_block = (i == 0) ? run_data->iv : input->data + (i - 1) * block_size;
+			uint8_t *block = output->data + salt_offset_dst + i * block_size;
+			uint8_t *prev_block = (i == 0) ? run_data->iv : input->data + salt_offset_src + (i - 1) * block_size;
 			for (uint8_t j = 0; j < block_size; j++)
 				block[j] ^= prev_block[j];
 		}
@@ -108,7 +130,7 @@ void					generate_pseudorandom_salt(t_des_run_data *data)
 }
 
 //------------------------------------------------------------------------------
-t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
+t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode, t_ssl_data *input)
 {
 	size_t				keys_str_size = 16; // 16 OR 48 ? IF DES3 ?
 	size_t				iv_str_size = 16;
@@ -122,26 +144,41 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 	// Geting arguments when required
 	// get salt
 	if (env->flags.s == true
-		&& (ret->iv = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
+		&& (ret->salt = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
 	{
 		free_run_data(ret);
 		ft_putstr("[Error] Bad Salt\n");
 		return NULL;
 	}
+	else if (ft_testbit(mode, DECRYPT_BIT) == true)
+	{
+		if (ft_memcmp(input->data, "Salted__", 8) || input->size < 16
+				|| (ret->salt = malloc(sizeof(uint8_t) * 8)) == NULL)
+		{
+			ft_putstr("[Error] Bad Salt Magic number\n");
+			free_run_data(ret);
+			return NULL;
+		}
+		ft_memcpy(ret->salt, input->data + 8, 8);
+	}
 	else
 		generate_pseudorandom_salt(ret);
 	// get key (either from flag or pbkdf)
-	if (env->flags.k_arg == NULL
-		&& ((ret->keys = bootleg_pbkdf(env->flags.p_arg, (char *)ret->salt, 16, 8)) == NULL))
+	if (env->flags.k == true)
+	{
+		if (ret->keys != NULL)
+			free(ret->keys);
+		if ((ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
+		{
+			ft_putstr("[Error] Bad key(s)\n");
+			free_run_data(ret);
+			return NULL;
+		}
+	}
+	else if (env->flags.k == false
+		&& ((ret->keys = bootleg_pbkdf(env->flags.p_arg, (char *)ret->salt, 256, 8)) == NULL))
 	{
 		ft_putstr("[Error] Bad pbkdf \n");
-		free_run_data(ret);
-		return NULL;
-	}
-	else if ((ret->keys == NULL)
-		&& (ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
-	{
-		ft_putstr("[Error] Bad key(s)\n");
 		free_run_data(ret);
 		return NULL;
 	}
@@ -153,15 +190,6 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode)
 		free_run_data(ret);
 		return NULL;
 	}
-
-	ft_putstr("salt=");
-	print_hex_key((uint8_t *)ret->salt, 8);
-	ft_putstr("\nkey =");
-	print_hex_key(ret->keys, 8);
-	ft_putstr("\niv  =");
-	if (ret->iv)
-		print_hex_key((uint8_t *)ret->iv, 8);
-	ft_putstr("\n");
 
 	return (ret);
 }
@@ -179,27 +207,38 @@ void						command_des(t_ssl_env *env, char **args)
 	mode = parse_des(env, args);
 	if (env->flags.d == true)
 		mode |= DECRYPT;
+	if (env->flags.k == false || (env->flags.k == true && env->flags.p == true))
+		mode |= ADD_SALT;
 
-	if ((run_data = get_run_data(env, mode)) == NULL)
+	// INPUT
+	gather_full_input(input, env->flags.file_arg);
+
+	if ((run_data = get_run_data(env, mode, input)) == NULL)
 	{
-		ft_putstr("Bad run_data()\n");
+		ft_putstr("[Error] Bad run_data()\n");
 		clean_data_struct(input);
 		clean_data_struct(output);
 		clean_data_struct(base64_put);
 		return ;
 	}
+
+	ft_putstr("salt=");
+	print_hex_key((uint8_t *)run_data->salt, 8);
+	ft_putstr("\nkey =");
+	print_hex_key(run_data->keys, 8);
+	ft_putstr("\niv  =");
+	if (run_data->iv)
+		print_hex_key((uint8_t *)run_data->iv, 8);
+	ft_putstr("\n");
+
+
 	subkeys = allocate_subkeys();
 	calculate_subkeys(subkeys, run_data->keys);
-
-	// INPUT
-	input = get_new_data_struct();
-	gather_full_input(input, env->flags.file_arg);
 
 	// PROCESS
 	// case when input to decrypt was base64'd during encryption
 	if (env->flags.a == true && env->flags.d == true)
 	{
-		output = get_new_data_struct();
 		process_input_base64(input, base64_put, env->flags.d);
 		process_input_des(base64_put, output, run_data, subkeys, mode);
 	}
@@ -215,7 +254,6 @@ void						command_des(t_ssl_env *env, char **args)
 	}
 	else
 		display_des(output, env->flags.file_arg_out);
-
 	free_run_data(run_data);
 	free_subkeys(subkeys);
 	clean_data_struct(input);

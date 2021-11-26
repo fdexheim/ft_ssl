@@ -6,7 +6,7 @@
 /*   By: fdexheim <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/14 10:51:51 by fdexheim          #+#    #+#             */
-/*   Updated: 2019/09/18 14:45:10 by fdexheim         ###   ########.fr       */
+/*   Updated: 2021/11/26 17:23:44 by fdexheim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ bool			ft_is_quote(char c);
 bool			ft_isdigit(int c);
 char			*ft_itoa_uint64(uint64_t src);
 char			ft_lowercase(const char c);
+int				ft_memcmp(const void *s1, const void *s2, size_t n);
 void			*ft_memcpy(void *dest, const void *src, size_t n);
 void			ft_put_size_t(const size_t src);
 void			ft_put_size_t_hex(const size_t src);

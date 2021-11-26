@@ -1,35 +1,69 @@
 import os
 import sys
 
-def compare(mode, testfile):
+def compare(mode, testfile, testflags):
     my = "my"
     myd = "myd"
     ref = "ref"
     refd = "refd"
 
-    key = "133457799bbcdff1"
-    iv = "0000000000000000"
+    refcmd = "openssl " + mode + " -in " + testfile + " -out " + ref
+    refdcmd = "openssl " + mode + " -d -in " + ref + " -out " + refd
+    mycmd = "./ft_ssl " + mode + " -i " + testfile + " -o " + my
+    mydcmd = "./ft_ssl " + mode + " -d -i " + my + " -o " + myd
+
+    key  = "133457799bbcdff1"
+    iv   = "0000000000000001"
+    salt = "6161616161616161"
+    password = "abcdef"
+
+    if (testflags.find('k') != -1):
+        refcmd += " -K " + key
+        refdcmd += " -K " + key
+        mycmd += " -k " + key
+        mydcmd += " -k " + key
+    if (testflags.find('s') != -1):
+        refcmd += " -S " + salt
+        refdcmd += " -S " + salt
+        mycmd += " -s " + salt
+        mydcmd += " -s " + salt
+    if (testflags.find('v') != -1):
+        refcmd += " -iv " + iv
+        refdcmd += " -iv " + iv
+        mycmd += " -v " + iv
+        mydcmd += " -v " + iv
+    if (testflags.find('p') != -1):
+        refcmd += " -pass pass:" + password
+        refdcmd += " -pass pass:" + password
+        mycmd += " -p " + password
+        mydcmd += " -p " + password
 
     os.system("rm " + my)
     os.system("rm " + ref)
     os.system("rm " + myd)
     os.system("rm " + refd)
 
-    print("--- OPENSSL ENCRYPT ---")
-    os.system("openssl " + mode + " -in " + testfile + " -out " + ref + " -K " + key + " -iv " + iv)
-    print("--- OPENSSL DECRYPT ---")
-    os.system("openssl " + mode + " -d -in " + ref + " -out " + refd + " -K " + key + " -iv " + iv)
-    print("--- FT_SSL ENCRYPT ---")
-    os.system("./ft_ssl " + mode + " -i " + testfile + " -o " + my + " -k " + key + " -v " + iv)
-    print("--- FT_SSL DECRYPT ---")
-    os.system("./ft_ssl " + mode + " -d -i " + my + " -o " + myd + " -k " + key + " -v " + iv)
 
-    print("")
+    print("\n======[ OPENSSL ENCRYPT ]======")
+    print(refcmd)
+    os.system(refcmd)
+    print("\n======[ OPENSSL DECRYPT ]======")
+    print(refdcmd)
+    os.system(refdcmd)
+    print("\n======[ FT_SSL  ENCRYPT ]======")
+    print(mycmd)
+    os.system(mycmd)
+    print("\n======[ FT_SSL  DECRYPT ]======")
+    print(mydcmd)
+    os.system(mydcmd)
+
+    print("\n==============================\n")
     print("[ENCRYPT] diff " + my + " VS " + ref)
     os.system("diff " + my + " " + ref)
     print("[DECRYPT] diff " + myd + " VS " + refd)
     os.system("diff " + myd + " " + refd)
-    print("")
+
+    print("\n==============================\n")
 
     print("cat my  (" + str(os.path.getsize(my)) + " bytes)")
     os.system("cat " + my)
@@ -46,4 +80,4 @@ def compare(mode, testfile):
 #    os.system("rm " + ref)
 #    os.system("rm " + refd)
 
-compare(sys.argv[1], sys.argv[2])
+compare(sys.argv[1], sys.argv[2], sys.argv[3])
