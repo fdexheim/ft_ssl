@@ -6,7 +6,7 @@
 #    By: fdexheim <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/26 14:02:22 by fdexheim          #+#    #+#              #
-#    Updated: 2021/11/25 10:21:19 by fdexheim         ###   ########.fr        #
+#    Updated: 2021/12/02 15:32:54 by fdexheim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,8 @@ SRC_NAME = 	base64/parse_base64.c \
 			base64/process_block_base64.c \
 			base64/base64.c \
 			des/des.c \
-			des/key.c \
+			des/get_run_data.c \
+			des/subkeys.c \
 			des/parse_des.c \
 			des/pbkdf.c \
 			des/process_block_des.c \

@@ -1,7 +1,5 @@
 #include "../../inc/ft_ssl.h"
 #include "../../inc/ft_ssl_des.h"
-//#include <bsd/readpassphrase.h>
-#include <readpassphrase.h>
 
 //------------------------------------------------------------------------------
 // Custom implementation of PBKDF
@@ -9,9 +7,6 @@
 uint8_t			*bootleg_pbkdf(char *password, char *salt,
 	size_t nb_desired_iters, size_t dk_len)
 {
-	const size_t		buff_size = 256;
-	char				buff[buff_size];
-	char				buff_verif[buff_size];
 	uint8_t				*ret_key;
 	t_ssl_data			in;
 	t_ssl_data			out;
@@ -21,18 +16,6 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 
 	ft_bzero(in_ptr, sizeof(t_ssl_data));
 	ft_bzero(out_ptr, sizeof(t_ssl_data));
-	if (password == NULL)
-	{
-		ft_bzero(buff, buff_size);
-		password = buff;
-		readpassphrase("password? ", buff, buff_size, 0);
-		readpassphrase("verif password? ", buff_verif, buff_size, 0);
-		if (ft_strcmp(buff, buff_verif))
-		{
-			ft_putstr("[Error] password verification failed\n");
-			return (NULL);
-		}
-	}
 
 	out_ptr->size = sizeof(uint8_t) * 8 + ft_strlen(password);
 	out_ptr->data = malloc(out_ptr->size);

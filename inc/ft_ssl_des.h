@@ -155,6 +155,7 @@ typedef struct			s_des_run_data
 	uint8_t				*keys;
 	uint8_t				*iv;
 	uint8_t				*salt;
+	char				*password;
 }						t_des_run_data;
 
 
@@ -164,6 +165,11 @@ typedef struct			s_des_subkeys
 	uint8_t				**cd;
 	uint8_t				**k;
 }						t_des_subkeys;
+
+
+t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
+		t_ssl_data *input);
+void					free_run_data(t_des_run_data *data);
 
 
 void					free_subkeys(t_des_subkeys *sk);

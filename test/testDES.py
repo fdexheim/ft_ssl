@@ -14,9 +14,12 @@ def compare(mode, testfile, testflags):
 
     key  = "133457799bbcdff1"
     iv   = "0000000000000001"
-    salt = "6161616161616161"
+    salt = "6363636363636363"
     password = "abcdef"
 
+    if (testflags.find('P') != -1):
+        refcmd += " -p "
+        refdcmd += " -p "
     if (testflags.find('k') != -1):
         refcmd += " -K " + key
         refdcmd += " -K " + key
@@ -37,6 +40,11 @@ def compare(mode, testfile, testflags):
         refdcmd += " -pass pass:" + password
         mycmd += " -p " + password
         mydcmd += " -p " + password
+    if (testflags.find('b') != -1):
+        refcmd += " -a "
+        refdcmd += " -a "
+        mycmd += " -a "
+        mydcmd += " -a "
 
     os.system("rm " + my)
     os.system("rm " + ref)
@@ -57,13 +65,13 @@ def compare(mode, testfile, testflags):
     print(mydcmd)
     os.system(mydcmd)
 
-    print("\n==============================\n")
+    print("\n===============================\n")
     print("[ENCRYPT] diff " + my + " VS " + ref)
     os.system("diff " + my + " " + ref)
     print("[DECRYPT] diff " + myd + " VS " + refd)
     os.system("diff " + myd + " " + refd)
 
-    print("\n==============================\n")
+    print("\n===============================\n")
 
     print("cat my  (" + str(os.path.getsize(my)) + " bytes)")
     os.system("cat " + my)

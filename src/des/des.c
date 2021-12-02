@@ -108,98 +108,12 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 }
 
 //------------------------------------------------------------------------------
-static void			free_run_data(t_des_run_data *data)
-{
-	if (data->keys != NULL)
-		free(data->keys);
-	if (data->iv != NULL)
-		free(data->iv);
-	if (data->salt != NULL)
-		free(data->salt);
-	if (data != NULL)
-		free(data);
-}
-
-//------------------------------------------------------------------------------
-void					generate_pseudorandom_salt(t_des_run_data *data)
-{
-//	uint8_t				buff[8]= { 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f, 0xf1, 0x0f };
-	uint8_t				buff[8]= { 0x61, 0x61,  0x61,  0x61,  0x61,  0x61,  0x61,  0x61 };
-	data->salt = malloc(sizeof(uint8_t) * 8);
-	ft_memcpy(data->salt, buff, 8);
-}
-
-//------------------------------------------------------------------------------
-t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode, t_ssl_data *input)
-{
-	size_t				keys_str_size = 16; // 16 OR 48 ? IF DES3 ?
-	size_t				iv_str_size = 16;
-	size_t				salt_str_size = 16;
-	t_des_run_data		*ret = NULL;
-
-	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
-		return (NULL);
-	ft_bzero(ret, sizeof(t_des_run_data));
-
-	// Geting arguments when required
-	// get salt
-	if (env->flags.s == true
-		&& (ret->salt = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
-	{
-		free_run_data(ret);
-		ft_putstr("[Error] Bad Salt\n");
-		return NULL;
-	}
-	else if (ft_testbit(mode, DECRYPT_BIT) == true)
-	{
-		if (ft_memcmp(input->data, "Salted__", 8) || input->size < 16
-				|| (ret->salt = malloc(sizeof(uint8_t) * 8)) == NULL)
-		{
-			ft_putstr("[Error] Bad Salt Magic number\n");
-			free_run_data(ret);
-			return NULL;
-		}
-		ft_memcpy(ret->salt, input->data + 8, 8);
-	}
-	else
-		generate_pseudorandom_salt(ret);
-	// get key (either from flag or pbkdf)
-	if (env->flags.k == true)
-	{
-		if (ret->keys != NULL)
-			free(ret->keys);
-		if ((ret->keys = get_translated_hex_input(env->flags.k_arg, keys_str_size, "Key")) == NULL)
-		{
-			ft_putstr("[Error] Bad key(s)\n");
-			free_run_data(ret);
-			return NULL;
-		}
-	}
-	else if (env->flags.k == false
-		&& ((ret->keys = bootleg_pbkdf(env->flags.p_arg, (char *)ret->salt, 256, 8)) == NULL))
-	{
-		ft_putstr("[Error] Bad pbkdf \n");
-		free_run_data(ret);
-		return NULL;
-	}
-	// get IV if required
-	if (ft_testbit(mode, ECB_BIT) == false
-		&& (ret->iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
-	{
-		ft_putstr("[Error] Bad IV\n");
-		free_run_data(ret);
-		return NULL;
-	}
-
-	return (ret);
-}
-
-//------------------------------------------------------------------------------
 void						command_des(t_ssl_env *env, char **args)
 {
 	t_ssl_data				*input = get_new_data_struct();
 	t_ssl_data				*output = get_new_data_struct();
 	t_ssl_data				*base64_put = get_new_data_struct();
+	t_ssl_data				*input_ptr = input;
 	t_des_run_data			*run_data;
 	t_des_subkeys			*subkeys;
 	e_des_operating_mode	mode;
@@ -213,7 +127,14 @@ void						command_des(t_ssl_env *env, char **args)
 	// INPUT
 	gather_full_input(input, env->flags.file_arg);
 
-	if ((run_data = get_run_data(env, mode, input)) == NULL)
+	if (env->flags.a == true && env->flags.d == true)
+	{
+		process_input_base64(input, base64_put, env->flags.d);
+		input_ptr = base64_put;
+	}
+
+	// run_data contains various essentials for encryption : salt, key, iv, etc.
+	if ((run_data = get_run_data(env, mode, input_ptr)) == NULL)
 	{
 		ft_putstr("[Error] Bad run_data()\n");
 		clean_data_struct(input);
@@ -231,19 +152,12 @@ void						command_des(t_ssl_env *env, char **args)
 		print_hex_key((uint8_t *)run_data->iv, 8);
 	ft_putstr("\n");
 
-
 	subkeys = allocate_subkeys();
 	calculate_subkeys(subkeys, run_data->keys);
 
 	// PROCESS
 	// case when input to decrypt was base64'd during encryption
-	if (env->flags.a == true && env->flags.d == true)
-	{
-		process_input_base64(input, base64_put, env->flags.d);
-		process_input_des(base64_put, output, run_data, subkeys, mode);
-	}
-	else
-		process_input_des(input, output, run_data, subkeys, mode);
+	process_input_des(input_ptr, output, run_data, subkeys, mode);
 
 	// OUTPUT
 	// case where encrypted output has to be base64'd before output
