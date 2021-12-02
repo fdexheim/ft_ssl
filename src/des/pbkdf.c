@@ -24,9 +24,9 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 		((char*)out_ptr->data)[j] = password[j];
 	for (size_t j = 0; j < 8; j++)
 		((char*)out_ptr->data)[j + pw_len] = salt[j];
-	ft_putstr("pass+salt : ");
-	print_hex_key(out_ptr->data, pw_len + 8);
-	ft_putstr("\n");
+//	ft_putstr("pass+salt : ");
+//	print_hex_key(out_ptr->data, pw_len + 8);
+//	ft_putstr("\n");
 
 	for (size_t i = 0; i < nb_desired_iters; i++)
 	{

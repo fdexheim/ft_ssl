@@ -144,5 +144,15 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode, t_ssl_
 		return NULL;
 	if (get_iv(env, ret, mode) == NULL)
 		return NULL;
+
+	ft_putstr("salt=");
+	print_hex_key((uint8_t *)ret->salt, 8);
+	ft_putstr("\nkey =");
+	print_hex_key(ret->keys, 8);
+	ft_putstr("\niv  =");
+	if (ret->iv)
+		print_hex_key((uint8_t *)ret->iv, 8);
+	ft_putstr("\n");
+
 	return (ret);
 }

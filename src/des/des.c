@@ -20,9 +20,7 @@ static void			display_des(t_ssl_data *output, char *target)
 		write(fd, output->data, output->size);
 	}
 	else
-	{
 		write(1, output->data, output->size);
-	}
 }
 
 //------------------------------------------------------------------------------
@@ -72,11 +70,10 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	}
 
 	uint32_t nb_blocks = (input->size - salt_offset_src) / block_size;
-	printf("salt_offset_src = %ld salt_offset_dst = %ld\n", salt_offset_src, salt_offset_dst);
-	printf("input size = %ld, output size = %ld nb_blocks = %d\n", input->size, output->size, nb_blocks);
+//	printf("salt_offset_src = %ld salt_offset_dst = %ld\n", salt_offset_src, salt_offset_dst);
+//	printf("input size = %ld, output size = %ld nb_blocks = %d\n", input->size, output->size, nb_blocks);
 
 	// iteration on all blocks
-	printf("processing blocks\n");
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
 		// PRE PROCESS
@@ -112,7 +109,7 @@ void						command_des(t_ssl_env *env, char **args)
 {
 	t_ssl_data				*input = get_new_data_struct();
 	t_ssl_data				*output = get_new_data_struct();
-	t_ssl_data				*base64_put = get_new_data_struct();
+	t_ssl_data				*base64put = get_new_data_struct();
 	t_ssl_data				*input_ptr = input;
 	t_des_run_data			*run_data;
 	t_des_subkeys			*subkeys;
@@ -126,11 +123,11 @@ void						command_des(t_ssl_env *env, char **args)
 
 	// INPUT
 	gather_full_input(input, env->flags.file_arg);
-
+	// case when input to decrypt was base64'd during encryption
 	if (env->flags.a == true && env->flags.d == true)
 	{
-		process_input_base64(input, base64_put, env->flags.d);
-		input_ptr = base64_put;
+		process_input_base64(input, base64put, env->flags.d);
+		input_ptr = base64put;
 	}
 
 	// run_data contains various essentials for encryption : salt, key, iv, etc.
@@ -139,32 +136,21 @@ void						command_des(t_ssl_env *env, char **args)
 		ft_putstr("[Error] Bad run_data()\n");
 		clean_data_struct(input);
 		clean_data_struct(output);
-		clean_data_struct(base64_put);
+		clean_data_struct(base64put);
 		return ;
 	}
 
-	ft_putstr("salt=");
-	print_hex_key((uint8_t *)run_data->salt, 8);
-	ft_putstr("\nkey =");
-	print_hex_key(run_data->keys, 8);
-	ft_putstr("\niv  =");
-	if (run_data->iv)
-		print_hex_key((uint8_t *)run_data->iv, 8);
-	ft_putstr("\n");
-
+	// PROCESS
 	subkeys = allocate_subkeys();
 	calculate_subkeys(subkeys, run_data->keys);
-
-	// PROCESS
-	// case when input to decrypt was base64'd during encryption
 	process_input_des(input_ptr, output, run_data, subkeys, mode);
 
 	// OUTPUT
 	// case where encrypted output has to be base64'd before output
 	if (env->flags.a == true && env->flags.d == false)
 	{
-		process_input_base64(output, base64_put, env->flags.d);
-		display_base64(base64_put, env->flags.file_arg_out, env->flags.d);
+		process_input_base64(output, base64put, env->flags.d);
+		display_base64(base64put, env->flags.file_arg_out, env->flags.d);
 	}
 	else
 		display_des(output, env->flags.file_arg_out);
@@ -172,5 +158,5 @@ void						command_des(t_ssl_env *env, char **args)
 	free_subkeys(subkeys);
 	clean_data_struct(input);
 	clean_data_struct(output);
-	clean_data_struct(base64_put);
+	clean_data_struct(base64put);
 }
