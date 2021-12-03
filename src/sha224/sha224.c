@@ -115,7 +115,8 @@ void				command_sha224(t_ssl_env *env, char **args)
 	{
 		for (uint32_t i = 0; env->file_args[i] != NULL; i++)
 		{
-			gather_full_input(input, env->file_args[i]);
+			if (gather_full_input(input, env->file_args[i]) == false)
+				continue;
 			process_input_sha224(input, output);
 			display_hash(env, env->file_args[i], "SHA224", output, false);
 			data_soft_reset(input);

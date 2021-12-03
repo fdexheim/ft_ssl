@@ -35,16 +35,16 @@ static void				display_before(char *src, char *hash_name, bool string_mode)
 	if (string_mode == true)
 	{
 		ft_putstr(hash_name);
-		ft_putstr("(\"");
+		ft_putstr(" (\"");
 		ft_putstr(src);
-		ft_putstr("\")= ");
+		ft_putstr("\") = ");
 	}
 	else if (src != NULL)
 	{
 		ft_putstr(hash_name);
-		ft_putstr("(");
+		ft_putstr(" (");
 		ft_putstr(src);
-		ft_putstr(")= ");
+		ft_putstr(") = ");
 	}
 	else
 	{

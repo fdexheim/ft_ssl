@@ -22,7 +22,7 @@ void			gather_full_input_loop(t_ssl_data *input, int fd)
 }
 
 //------------------------------------------------------------------------------
-void			gather_full_input(t_ssl_data *input, char *path)
+bool			gather_full_input(t_ssl_data *input, char *path)
 {
 	int			fd;
 
@@ -37,11 +37,12 @@ void			gather_full_input(t_ssl_data *input, char *path)
 			ft_putstr("[ERROR] Failed to open file '");
 			ft_putstr(path);
 			ft_putstr("'\n");
-			return ;
+			return false;
 		}
 		gather_full_input_loop(input, fd);
 		close(fd);
 	}
+	return true;
 }
 
 //------------------------------------------------------------------------------
