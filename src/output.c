@@ -14,56 +14,68 @@ static void				display_data(void *hash, size_t size)
 }
 
 //------------------------------------------------------------------------------
-static void				display_after(char *src, bool string_mode)
+static void				display_after(t_ssl_env *env, char *src, e_ssl_output_mode mode)
 {
-	if (string_mode == true)
+	(void)env;
+	if (mode == SSL_STRING_INPUT)
 	{
 		ft_putstr(" \"");
 		ft_putstr(src);
 		ft_putstr("\"");
 	}
-	else if (src != NULL)
+	else if (mode == SSL_FILE_INPUT)
 	{
 		ft_putstr(" ");
 		ft_putstr(src);
 	}
+	else if (mode == SSL_STDIN_INPUT)
+	{
+	
+	}
 }
 
 //------------------------------------------------------------------------------
-static void				display_before(char *src, char *hash_name, bool string_mode)
+static void				display_before(t_ssl_env *env, char *src, char *hash_name, e_ssl_output_mode mode)
 {
-	if (string_mode == true)
+	if (mode == SSL_STRING_INPUT)
 	{
 		ft_putstr(hash_name);
 		ft_putstr(" (\"");
 		ft_putstr(src);
 		ft_putstr("\") = ");
 	}
-	else if (src != NULL)
+	else if (mode == SSL_FILE_INPUT)
 	{
 		ft_putstr(hash_name);
 		ft_putstr(" (");
 		ft_putstr(src);
 		ft_putstr(") = ");
 	}
-	else
+	else if (mode == SSL_STDIN_INPUT)
 	{
-		ft_putstr("(stdin)= ");
+		if (env->flags.p == true)
+		{
+			ft_putstr("(\"");
+			ft_putstr(src);
+			ft_putstr("\")= ");
+		}
+		else
+			ft_putstr("(stdin)= ");
 	}
 }
 
 //------------------------------------------------------------------------------
 void				display_hash(t_ssl_env *env, char *src, char *hash_name,
-	t_ssl_data *output, bool string_mode)
+	t_ssl_data *output, e_ssl_output_mode mode)
 {
-	if (env->flags.q != true && env->flags.r == false)
+	if (env->flags.q == false && env->flags.r == false)
 	{
-		display_before(src, hash_name, string_mode);
+		display_before(env, src, hash_name, mode);
 	}
 	display_data(output->data, output->size);
-	if (env->flags.q != true && env->flags.r == true)
+	if (env->flags.q == false && env->flags.r == true)
 	{
-		display_after(src, string_mode);
+		display_after(env, src, mode);
 	}
 	ft_putstr("\n");
 }

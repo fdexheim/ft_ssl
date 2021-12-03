@@ -56,6 +56,22 @@ void				data_soft_reset(t_ssl_data *data)
 }
 
 //------------------------------------------------------------------------------
+char				*get_data_as_str(t_ssl_data *data)
+{
+	char			*inputstr;
+	if ((inputstr = malloc(data->size + 1)) == NULL)
+	{
+		ft_putstr("[Error] Bad malloc()\n");
+		exit(EXIT_FAILURE);
+	}
+	ft_memcpy(inputstr, data->data, data->size);
+	inputstr[data->size] = '\0';
+	if (data->size > 0)
+		inputstr[data->size - 1] = '\0';
+	return inputstr;
+}
+
+//------------------------------------------------------------------------------
 t_ssl_data			*get_new_data_struct()
 {
 	t_ssl_data		*ret;

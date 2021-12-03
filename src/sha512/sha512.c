@@ -77,27 +77,20 @@ void				process_input_sha512(t_ssl_data *input, t_ssl_data *output)
 //------------------------------------------------------------------------------
 void				command_sha512(t_ssl_env *env, char **args)
 {
-	t_ssl_data		*input;
-	t_ssl_data		*output;
+	t_ssl_data		*input = get_new_data_struct();
+	t_ssl_data		*output = get_new_data_struct();
 
 	parse_sha512(env, args);
-	if ((input = malloc(sizeof(t_ssl_data))) == NULL || (output = malloc(sizeof(t_ssl_data))) == NULL)
-	{
-		ft_putstr("[Error] Bad malloc()\n");
-		exit(EXIT_FAILURE);
-	}
-	ft_bzero(input, sizeof(t_ssl_data));
-	ft_bzero(output, sizeof(t_ssl_data));
-
 	if (env->flags.p == true || (env->file_args == NULL && env->flags.s == false))
 	{
 		gather_full_input(input, NULL);
-		if (env->flags.p == true)
-		{
-			write(1, input, env->input_size);
-		}
+		char *inputstr = get_data_as_str(input);
 		process_input_sha512(input, output);
-		display_hash(env, NULL, "SHA512", output, false);
+		if (env->flags.p == true)
+			display_hash(env, inputstr, "SHA512", output, SSL_STDIN_INPUT);
+		else
+			display_hash(env, NULL, "SHA512", output, SSL_STDIN_INPUT);
+		free(inputstr);
 		data_soft_reset(input);
 		data_soft_reset(output);
 	}
@@ -108,7 +101,7 @@ void				command_sha512(t_ssl_env *env, char **args)
 		input->size = ft_strlen(env->flags.s_arg);
 		input->allocated_size = input->size + 1;
 		process_input_sha512(input, output);
-		display_hash(env, env->flags.s_arg, "SHA512", output, true);
+		display_hash(env, env->flags.s_arg, "SHA512", output, SSL_STRING_INPUT);
 		data_soft_reset(input);
 		data_soft_reset(output);
 	}
@@ -120,11 +113,11 @@ void				command_sha512(t_ssl_env *env, char **args)
 			if (gather_full_input(input, env->file_args[i]) == false)
 				continue;
 			process_input_sha512(input, output);
-			display_hash(env, env->file_args[i], "SHA512", output, false);
+			display_hash(env, env->file_args[i], "SHA512", output, SSL_FILE_INPUT);
 			data_soft_reset(input);
 			data_soft_reset(output);
 		}
 	}
-	free(input);
-	free(output);
+	clean_data_struct(input);
+	clean_data_struct(output);
 }

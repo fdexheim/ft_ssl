@@ -70,8 +70,18 @@ typedef struct				s_ssl_arg_flag
 }							t_ssl_arg_flags;
 
 
+typedef enum				ssl_output_mode
+{
+	SSL_JUST_HASH = 0,
+	SSL_STDIN_INPUT = 1,
+	SSL_STRING_INPUT = 2,
+	SSL_FILE_INPUT = 4
+}							e_ssl_output_mode;
+
+
+
 void						display_hash(t_ssl_env *env, char *src, char *hash_name,
-	t_ssl_data *output, bool string_mode);
+	t_ssl_data *output, e_ssl_output_mode mode);
 void						dump_buffer(void *buff, size_t size);
 void						buffer_join(void *input, void *add,
 	size_t input_size, size_t add_size);
@@ -95,6 +105,7 @@ void						process_input_512(t_ssl_data *input, t_ssl_data *output);
 
 
 bool						gather_full_input(t_ssl_data *input, char *path);
+char						*get_data_as_str(t_ssl_data *data);
 void						data_soft_reset(t_ssl_data *data);
 t_ssl_data					*get_new_data_struct();
 void						clean_data_struct(t_ssl_data *toclean);
