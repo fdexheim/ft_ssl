@@ -1,4 +1,6 @@
 #include "../inc/libft.h"
+#include <stdio.h>
+
 
 uint64_t		arg_len(char *src)
 {
@@ -22,10 +24,9 @@ uint64_t		arg_len(char *src)
 uint32_t		count_args(char *src)
 {
 	char		*ptr;
-	uint32_t	ret;
-	bool		in_word;
+	uint32_t	ret = 0;
+	bool		in_word = false;
 
-	ret = 0;
 	while (*src != '\0')
 	{
 		if (*src != ' ' && in_word == false)
@@ -91,7 +92,7 @@ char			**ft_tokenizer(char *src)
 	char		**ret;
 
 	arg_count = count_args(src);
-	ret = (char **)malloc(sizeof(char**) * arg_count + 1);
+	ret = (char **)malloc(sizeof(char*) * arg_count + 1);
 	ret[arg_count] = NULL;
 	fill_ret(ret, src, arg_count);
 	return (ret);

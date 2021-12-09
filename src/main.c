@@ -60,10 +60,12 @@ static void			stdin_loop_mode(t_ssl_env *env)
 	{
 		ft_putstr("ft_ssl > ");
 		input = ft_get_full_input();
-		if (input == NULL || (input_len = ft_strlen(input)) == 0)
+		if (input == NULL)
+			return ;
+		input_len = ft_strlen(input);
+		if (input_len < 1)
 		{
-			if (input != NULL)
-				free(input);
+			free(input);
 			return ;
 		}
 		if (input[input_len - 1] == '\n')
@@ -74,9 +76,16 @@ static void			stdin_loop_mode(t_ssl_env *env)
 			return ;
 		}
 		split_input = ft_tokenizer(input);
+		free(input);
+		if (split_input == NULL)
+			continue ;
+		if (ft_get_string_table_size(split_input) < 1)
+		{
+			ft_free_string_tab(split_input);
+			continue ;
+		}
 		parse_command(env, split_input);
 		ft_free_string_tab(split_input);
-		free(input);
 		reset_flags(env);
 		env->file_args = NULL;
 	}
