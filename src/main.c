@@ -8,6 +8,9 @@ void				list_commands(void)
 	ft_putstr("md5\nsha224\nsha256\nsha512\n");
 	ft_putstr("\nCipher commands:\n");
 	ft_putstr("base64\n");
+	ft_putstr("des\n");
+	ft_putstr("des-cbc\n");
+	ft_putstr("des-ecb\n");
 }
 
 //------------------------------------------------------------------------------

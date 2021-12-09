@@ -68,9 +68,15 @@ static void				display_before(t_ssl_env *env, char *src, char *hash_name, e_ssl_
 void				display_hash(t_ssl_env *env, char *src, char *hash_name,
 	t_ssl_data *output, e_ssl_output_mode mode)
 {
-	if (env->flags.q == false && env->flags.r == false)
+	if (env->flags.q == false && (env->flags.r == false
+		|| (mode == SSL_STDIN_INPUT && env->flags.p == true)))
 	{
 		display_before(env, src, hash_name, mode);
+	}
+	else if (env->flags.q == true && (mode == SSL_STDIN_INPUT && env->flags.p == true))
+	{
+		ft_putstr(src);
+		ft_putstr("\n");
 	}
 	display_data(output->data, output->size);
 	if (env->flags.q == false && env->flags.r == true)

@@ -133,7 +133,7 @@ void						command_des(t_ssl_env *env, char **args)
 	// run_data contains various essentials for encryption : salt, key, iv, etc.
 	if ((run_data = get_run_data(env, mode, input_ptr)) == NULL)
 	{
-		ft_putstr("[Error] Bad run_data()\n");
+		ft_putstr("[Error] Bad DES run_data()\n");
 		clean_data_struct(input);
 		clean_data_struct(output);
 		clean_data_struct(base64put);

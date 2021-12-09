@@ -66,7 +66,7 @@ char				*get_data_as_str(t_ssl_data *data)
 	}
 	ft_memcpy(inputstr, data->data, data->size);
 	inputstr[data->size] = '\0';
-	if (data->size > 0)
+	if (data->size > 0 && inputstr[data->size - 1] == '\n')
 		inputstr[data->size - 1] = '\0';
 	return inputstr;
 }
