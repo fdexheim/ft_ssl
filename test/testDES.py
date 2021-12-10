@@ -15,7 +15,7 @@ def compare(mode, testfile, testflags):
     key  = "133457799bbcdff1"
     iv   = "0000000000000001"
     salt = "6363636363636363"
-    password = "abcdef"
+    password = "a"
 
     if (testflags.find('P') != -1):
         refcmd += " -p "

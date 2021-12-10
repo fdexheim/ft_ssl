@@ -89,14 +89,15 @@ static void				pad_buffer_base64(t_ssl_data *data, bool decrypt)
 void					process_input_base64(t_ssl_data *input,
 	t_ssl_data *output, bool decrypt)
 {
-	pad_buffer_base64(input, decrypt);
+	t_ssl_data		*input_copy = copy_ssl_data(input);
+	pad_buffer_base64(input_copy, decrypt);
 
 	const size_t		block_size = decrypt == true ? 4 : 3;
 	const size_t		output_block_size = decrypt == true ? 3 : 4;
-	const size_t		pad_size = input->size % block_size == 0 ?
-		0 : block_size - (input->size % block_size);
+	const size_t		pad_size = input_copy->size % block_size == 0 ?
+		0 : block_size - (input_copy->size % block_size);
 	const size_t		nb_blocks = pad_size == 0 ?
-		input->size / block_size : (input->size / block_size) + 1;
+		input_copy->size / block_size : (input_copy->size / block_size) + 1;
 
 	output->size = nb_blocks * output_block_size;
 	if ((output->data = malloc(output->size + 1)) == NULL)
@@ -113,21 +114,22 @@ void					process_input_base64(t_ssl_data *input,
 		{
 			if (decrypt == true)
 			{
-				char		*ptr = input->data + (i * block_size);
+				char		*ptr = input_copy->data + (i * block_size);
 				if (ptr[3] == '=')
 					output->size--;
 				if (ptr[2] == '=')
 					output->size--;
 			}
-			process_block_base64(input->data + (i * block_size),
+			process_block_base64(input_copy->data + (i * block_size),
 				output->data + (i * output_block_size), decrypt, pad_size);
 		}
 		else
 		{
-			process_block_base64(input->data + (i * block_size),
+			process_block_base64(input_copy->data + (i * block_size),
 				output->data + (i * output_block_size), decrypt, 0);
 		}
 	}
+	clean_data_struct(input_copy);
 }
 
 //------------------------------------------------------------------------------

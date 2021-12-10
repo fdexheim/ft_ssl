@@ -85,6 +85,25 @@ t_ssl_data			*get_new_data_struct()
 }
 
 //------------------------------------------------------------------------------
+t_ssl_data			*copy_ssl_data(t_ssl_data *src)
+{
+	t_ssl_data		*ret = get_new_data_struct();
+
+	if (ret == NULL)
+		return NULL;
+	if ((ret->data = malloc(src->size)) == NULL)
+	{
+		clean_data_struct(ret);
+		return NULL;
+	}
+	ft_memcpy(ret->data, src->data, src->size);
+	ret->size = src->size;
+	ret->allocated_size = ret->size;
+
+	return (ret);
+}
+
+//------------------------------------------------------------------------------
 void						clean_data_struct(t_ssl_data *toclean)
 {
 	data_soft_reset(toclean);

@@ -50,9 +50,10 @@ void				process_input_sha512(t_ssl_data *input, t_ssl_data *output)
 		0x1f83d9abfb41bd6b, 0x5be0cd19137e2179
 	};
 	uint32_t		nb_blocks;
+	t_ssl_data		*input_copy = copy_ssl_data(input);
 
-	pad_buffer_sha512(input);
-	nb_blocks = input->size / block_size;
+	pad_buffer_sha512(input_copy);
+	nb_blocks = input_copy->size / block_size;
 	if ((output->data = malloc(state_size)) == NULL)
 	{
 		ft_putstr("[Error] Bad malloc()\n");
@@ -64,7 +65,7 @@ void				process_input_sha512(t_ssl_data *input, t_ssl_data *output)
 
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		process_block_sha512(input->data + (i * block_size), output->data);
+		process_block_sha512(input_copy->data + (i * block_size), output->data);
 	}
 
 	uint64_t		*ptr = output->data;
@@ -72,6 +73,7 @@ void				process_input_sha512(t_ssl_data *input, t_ssl_data *output)
 	{
 		ptr[i] = ft_reverse_endianess64(ptr[i]);
 	}
+	clean_data_struct(input_copy);
 }
 
 //------------------------------------------------------------------------------

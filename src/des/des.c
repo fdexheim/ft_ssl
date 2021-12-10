@@ -44,11 +44,12 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	const uint32_t	block_size = 8;
 	size_t			salt_offset_src = 0;
 	size_t			salt_offset_dst = 0;
+	t_ssl_data		*input_copy = copy_ssl_data(input);
 
 	// handle padding and salt 
 	if (ft_testbit(mode, DECRYPT_BIT) == false)
 	{
-		pad_buffer_des(input);
+		pad_buffer_des(input_copy);
 		if (ft_testbit(mode, ADD_SALT_BIT) == true)
 			salt_offset_dst = 16;
 	}
@@ -56,11 +57,11 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 		salt_offset_src = 16;
 
 	// allocate output
-	output->size = input->size + salt_offset_dst - salt_offset_src;
+	output->size = input_copy->size + salt_offset_dst - salt_offset_src;
 	output->allocated_size = output->size;
 	if ((output->data = malloc(output->size)) == NULL)
 	{
-		ft_putstr("[Error] Bad malloc() in process_input_des()\n");
+		ft_putstr("[Error] Bad malloc() in process_input_copy_des()\n");
 		exit(EXIT_FAILURE);
 	}
 	if (ft_testbit(mode, DECRYPT_BIT) == false && ft_testbit(mode, ADD_SALT_BIT) == true)
@@ -69,9 +70,9 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 		ft_memcpy(output->data + 8, run_data->salt , 8);
 	}
 
-	uint32_t nb_blocks = (input->size - salt_offset_src) / block_size;
+	uint32_t nb_blocks = (input_copy->size - salt_offset_src) / block_size;
 //	printf("salt_offset_src = %ld salt_offset_dst = %ld\n", salt_offset_src, salt_offset_dst);
-//	printf("input size = %ld, output size = %ld nb_blocks = %d\n", input->size, output->size, nb_blocks);
+//	printf("input_copy size = %ld, output size = %ld nb_blocks = %d\n", input_copy->size, output->size, nb_blocks);
 
 	// iteration on all blocks
 	for (size_t i = 0; i < nb_blocks; i++)
@@ -79,14 +80,14 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 		// PRE PROCESS
 		if (ft_testbit(mode, CBC_BIT) == true && ft_testbit(mode, DECRYPT_BIT) == false)
 		{
-			uint8_t *block = input->data + salt_offset_src + i * block_size;
+			uint8_t *block = input_copy->data + salt_offset_src + i * block_size;
 			uint8_t *prev_block = (i == 0) ? run_data->iv : output->data + salt_offset_dst + (i - 1) * block_size;
 			for (uint8_t j = 0; j < block_size; j++)
 				block[j] ^= prev_block[j];
 		}
 
 		// PROCESS
-		process_block_des(input->data + salt_offset_src + i * block_size,
+		process_block_des(input_copy->data + salt_offset_src + i * block_size,
 			output->data + salt_offset_dst + i * block_size,
 			subkeys->k, ft_testbit(mode, DECRYPT_BIT));
 
@@ -94,7 +95,7 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 		if (ft_testbit(mode, CBC_BIT) == true && ft_testbit(mode, DECRYPT_BIT) == true)
 		{
 			uint8_t *block = output->data + salt_offset_dst + i * block_size;
-			uint8_t *prev_block = (i == 0) ? run_data->iv : input->data + salt_offset_src + (i - 1) * block_size;
+			uint8_t *prev_block = (i == 0) ? run_data->iv : input_copy->data + salt_offset_src + (i - 1) * block_size;
 			for (uint8_t j = 0; j < block_size; j++)
 				block[j] ^= prev_block[j];
 		}
@@ -102,6 +103,7 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	//	PADDING REMOVAL
 	if (ft_testbit(mode, DECRYPT_BIT) == true)
 		output->size -= ((uint8_t *)output->data)[output->size - 1];
+	clean_data_struct(input_copy);
 }
 
 //------------------------------------------------------------------------------

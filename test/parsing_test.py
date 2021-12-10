@@ -6,8 +6,9 @@ def t(command):
     os.system(command)
     print(">")
 
-def run(exec_command):
-    t("echo \"42 is nice\" | " + " openssl md5")
+def run(command):
+    exec_command = "./ft_ssl " + command
+    t("echo \"42 is nice\" | " + " openssl " + command)
 
     t("echo \"42 is nice\" | " + exec_command)
 
@@ -35,4 +36,4 @@ def run(exec_command):
 
     t("echo \"just to be extra clear\" | " + exec_command + " -r -q -p -s \"foo\" test/file")
 
-run("./ft_ssl " + sys.argv[1])
+run(sys.argv[1])

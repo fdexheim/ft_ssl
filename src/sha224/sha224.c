@@ -47,9 +47,10 @@ void				process_input_sha224(t_ssl_data *input, t_ssl_data *output)
 		0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
 	};
 	uint32_t		nb_blocks;
+	t_ssl_data		*input_copy = copy_ssl_data(input);
 
-	pad_buffer_sha224(input);
-	nb_blocks = input->size / block_size;
+	pad_buffer_sha224(input_copy);
+	nb_blocks = input_copy->size / block_size;
 	if ((output->data = malloc(state_size)) == NULL)
 	{
 		ft_putstr("[Error] Bad malloc()\n");
@@ -61,7 +62,7 @@ void				process_input_sha224(t_ssl_data *input, t_ssl_data *output)
 
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		process_block_sha224(input->data + (i * block_size), output->data);
+		process_block_sha224(input_copy->data + (i * block_size), output->data);
 	}
 
 	uint32_t		*ptr = output->data;
@@ -70,6 +71,7 @@ void				process_input_sha224(t_ssl_data *input, t_ssl_data *output)
 		ptr[i] = ft_reverse_endianess32(ptr[i]);
 	}
 	output->size = 28;
+	clean_data_struct(input_copy);
 }
 
 //------------------------------------------------------------------------------

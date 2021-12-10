@@ -108,6 +108,7 @@ bool						gather_full_input(t_ssl_data *input, char *path);
 char						*get_data_as_str(t_ssl_data *data);
 void						data_soft_reset(t_ssl_data *data);
 t_ssl_data					*get_new_data_struct();
+t_ssl_data					*copy_ssl_data(t_ssl_data *src);
 void						clean_data_struct(t_ssl_data *toclean);
 void						usage(void);
 void						close_env(t_ssl_env *env);

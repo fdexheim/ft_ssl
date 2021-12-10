@@ -41,9 +41,10 @@ void				process_input_md5(t_ssl_data *input, t_ssl_data *output)
 		0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476
 	};
 	uint32_t		nb_blocks;
+	t_ssl_data		*input_copy = copy_ssl_data(input);
 
-	pad_buffer_md5(input);
-	nb_blocks = input->size / block_size;
+	pad_buffer_md5(input_copy);
+	nb_blocks = input_copy->size / block_size;
 	if ((output->data = malloc(state_size)) == NULL)
 	{
 		ft_putstr("[Error] Bad malloc()\n");
@@ -55,8 +56,9 @@ void				process_input_md5(t_ssl_data *input, t_ssl_data *output)
 
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
-		process_block_md5(input->data + (i * block_size), output->data);
+		process_block_md5(input_copy->data + (i * block_size), output->data);
 	}
+	clean_data_struct(input_copy);
 }
 
 //------------------------------------------------------------------------------

@@ -60,6 +60,8 @@ void				*bootleg_realloc(void *src, size_t old_size, size_t new_size)
 		exit(EXIT_FAILURE);
 	}
 	ft_bzero(ret, new_size);
+	if (src == NULL)
+		return (ret);
 	for (size_t i = 0; i < old_size; i++)
 	{
 		ret[i] = ptr[i];
