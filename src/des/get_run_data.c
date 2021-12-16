@@ -1,32 +1,32 @@
 #include "../../inc/ft_ssl.h"
 #include "../../inc/ft_ssl_des.h"
-#include <bsd/readpassphrase.h>
-//#include <readpassphrase.h>
+
+#ifdef __APPLE__
+	#include <sys/random.h>
+#endif
 
 //------------------------------------------------------------------------------
 void			free_run_data(t_des_run_data *data)
 {
-	if (data->keys != NULL)
-		free(data->keys);
-	if (data->iv != NULL)
-		free(data->iv);
-	if (data->salt != NULL)
-		free(data->salt);
-	if (data->password != NULL)
-		free(data->password);
 	if (data != NULL)
+	{
+		if (data->keys != NULL)
+			free(data->keys);
+		if (data->iv != NULL)
+			free(data->iv);
+		if (data->salt != NULL)
+			free(data->salt);
 		free(data);
+	}
 }
 
 //------------------------------------------------------------------------------
 uint8_t					*generate_pseudorandom_salt()
 {
-	// i swear it's random you're just very unlucky
-	uint8_t				buff[8]= { 0x61, 0x61,  0x61,  0x61,  0x61,  0x61,  0x61,  0x61 };
 	uint8_t				*ret;
 	if ((ret = malloc(sizeof(uint8_t) * 8)) == NULL)
 		return NULL;
-	ft_memcpy(ret, buff, 8);
+	getentropy(ret, 8);
 	return (ret);
 }
 
@@ -36,41 +36,6 @@ static void				*run_data_error(t_des_run_data *data, char *msg)
 	ft_putstr(msg);
 	free_run_data(data);
 	return (NULL);
-}
-
-//------------------------------------------------------------------------------
-static t_des_run_data	*get_password(t_ssl_env *env, t_des_run_data *ret)
-{
-	size_t				buff_size = 256;
-	char				buff[buff_size];
-	char				buff_verif[buff_size];
-
-	ft_bzero(buff, buff_size);
-	ft_bzero(buff_verif, buff_size);
-	if (env->flags.p == true)
-	{
-		ret->password = ft_strdup(env->flags.p_arg);
-	}
-	else if (env->flags.k == false)
-	{
-		readpassphrase("password? ", buff, buff_size, 0);
-		readpassphrase("verif password? ", buff_verif, buff_size, 0);
-		if (ft_strcmp(buff, buff_verif))
-			return (run_data_error(ret, "[Error] password verification failed\n"));
-		if ((ret->password = ft_strdup(buff)) == NULL)
-			return (run_data_error(ret, "[Error] password strdup failed\n"));
-	}
-/*		ft_putstr("get_password bufflen = ");
-		ft_put_size_t(ft_strlen(buff));
-		ft_putstr("\nget_password buff     : ");
-		ft_putstr(buff);
-		ft_putstr("\nget_password verif    : ");
-		ft_putstr(buff_verif);
-		ft_putstr("\nget_password ret->password : ");
-		ft_putstr(ret->password);
-		ft_putstr("\n");
-*/
-	return (ret);
 }
 
 //------------------------------------------------------------------------------
@@ -84,11 +49,14 @@ static t_des_run_data	*get_salt(t_ssl_env *env, t_des_run_data *ret,
 		if ((ret->salt = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
 			return (run_data_error(ret, "[Error] Bad Salt\n"));
 	}
-	else if (ft_testbit(mode, DECRYPT_BIT) == true
-			&& (input->size >= 16 && (ft_memcmp(input->data, "Salted__", 8))))
+	else if (ft_testbit(mode, DECRYPT_BIT) == true)
 	{
+		ft_putstr("input size : ");
+		ft_put_size_t(input->size);
+		if (input->size < 24 || (ft_memcmp(input->data, "Salted__", 8)))
+			return (run_data_error(ret, "[Error] missing or badly formated salt\n"));
 		if ((ret->salt = malloc(sizeof(uint8_t) * 8)) == NULL)
-			return (run_data_error(ret, "[Error] Bad Salt Magic number\n"));
+			return (run_data_error(ret, "[Error] Bad get_salt() malloc()\n"));
 		ft_memcpy(ret->salt, input->data + 8, 8);
 	}
 	else
@@ -120,7 +88,7 @@ static t_des_run_data	*get_key(t_ssl_env *env, t_des_run_data *ret, uint8_t *der
 }
 
 //------------------------------------------------------------------------------
-static t_des_run_data	*get_iv(t_ssl_env *env, t_des_run_data *ret, e_des_operating_mode mode, uint8_t *derived)
+static t_des_run_data	*get_iv(t_ssl_env *env, t_des_run_data *ret, e_des_operating_mode mode, char *password, uint8_t *derived)
 {
 	size_t				iv_str_size = 16;
 	size_t				iv_len = 8;
@@ -132,7 +100,7 @@ static t_des_run_data	*get_iv(t_ssl_env *env, t_des_run_data *ret, e_des_operati
 			if ((ret->iv = get_translated_hex_input(env->flags.v_arg, iv_str_size, "IV")) == NULL)
 				return (run_data_error(ret, "[Error] Bad IV\n"));
 		}
-		else if (ret->password != NULL)
+		else if (password != NULL)
 		{
 			if ((ret->iv = malloc(sizeof(uint8_t) * 8)) == NULL)
 				return (run_data_error(ret, "[Error] Bad IV malloc()\n"));
@@ -167,71 +135,77 @@ static void					append_passsalt(t_ssl_data *d, char *password,
 
 //------------------------------------------------------------------------------
 t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
-		t_ssl_data *input)
+		t_ssl_data *input, char *password)
 {
 	t_des_run_data		*ret = NULL;
 	t_ssl_data			d0;
 	t_ssl_data			d1;
-//	t_ssl_data			d2;
-//	t_ssl_data			d3;
+	t_ssl_data			d2;
+	t_ssl_data			d3;
 	ft_bzero(&d0, sizeof(t_ssl_data));
 	ft_bzero(&d1, sizeof(t_ssl_data));
-//	ft_bzero(&d2, sizeof(t_ssl_data));
-//	ft_bzero(&d3, sizeof(t_ssl_data));
+	ft_bzero(&d2, sizeof(t_ssl_data));
+	ft_bzero(&d3, sizeof(t_ssl_data));
 	size_t key_len = 8 * sizeof(uint8_t);
 
+
+	void					(*hasher)(t_ssl_data *, t_ssl_data *);
+	// adjust hashing fucntion for different dump configs at school
+	// for some reason macos dumps's Openssl still use md5 by default
+	#ifdef __APPLE__
+		hasher = process_input_md5;
+	#else
+		hasher = process_block_sha256;
+	#endif
 
 	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
 		return (NULL);
 	ft_bzero(ret, sizeof(t_des_run_data));
 
 	if (get_salt(env, ret, mode, input) == NULL)
-		return NULL;
-	if (get_password(env, ret) == NULL)
-		return NULL;
+		return (NULL);
 
-	size_t pw_len = ft_strlen(ret->password);
+	size_t pw_len = ft_strlen(password);
 	size_t salt_len = sizeof(uint8_t) * 8;
-	append_passsalt(&d0, ret->password, pw_len, ret->salt, salt_len);
-	process_input_sha256(&d0, &d1);
+	append_passsalt(&d0, password, pw_len, ret->salt, salt_len);
+	hasher(&d0, &d1);
 
 
 	if (get_key(env, ret, d1.data) == NULL)
 		return NULL;
-	if (get_iv(env, ret, mode, d1.data + key_len) == NULL)
+	if (get_iv(env, ret, mode, password, d1.data + key_len) == NULL)
 		return NULL;
-
 
 /*
 	ft_putstr("password (str) : ");
-	ft_putstr(ret->password);
+	ft_putstr(password);
 	ft_putstr("\npassword (key) : ");
-	print_hex_key((uint8_t *)ret->password, pw_len);
+	print_hex_key((uint8_t *)password, pw_len);
 	ft_putstr("\nsalt           : ");
 	print_hex_key(ret->salt, salt_len);
 	ft_putstr("\n");
 */
 
-//	append_passsalt(&d1, ret->password, pw_len, ret->salt, salt_len);
-//	process_input_sha256(&d1, &d2);
+	append_passsalt(&d1, password, pw_len, ret->salt, salt_len);
+	hasher(&d1, &d2);
 
-//	append_passsalt(&d2, ret->password, pw_len, ret->salt, salt_len);
-//	process_input_sha256(&d2, &d3);
+	append_passsalt(&d2, password, pw_len, ret->salt, salt_len);
+	hasher(&d2, &d3);
 
 	ft_putstr("\nd0 : ");
 	print_hex_key(d0.data, d0.size);
 	ft_putstr("\nd1 : ");
 	print_hex_key(d1.data, d1.size);
-/*	ft_putstr("\nd2 : ");
+	ft_putstr("\nd2 : ");
 	print_hex_key(d2.data, d2.size);
 	ft_putstr("\nd3 : ");
 	print_hex_key(d3.data, d3.size);
-*/	ft_putstr("\n");
+	ft_putstr("\n");
 
 	data_soft_reset(&d0);
 	data_soft_reset(&d1);
-//	data_soft_reset(&d2);
-//	data_soft_reset(&d3);
+	data_soft_reset(&d2);
+	data_soft_reset(&d3);
 
 
 	ft_putstr("salt=");

@@ -155,7 +155,6 @@ typedef struct			s_des_run_data
 	uint8_t				*keys;
 	uint8_t				*iv;
 	uint8_t				*salt;
-	char				*password;
 }						t_des_run_data;
 
 
@@ -168,7 +167,7 @@ typedef struct			s_des_subkeys
 
 
 t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
-		t_ssl_data *input);
+		t_ssl_data *input, char *password);
 void					free_run_data(t_des_run_data *data);
 
 
@@ -184,6 +183,10 @@ void					translate_key_from_hex_str(char *input, uint8_t *key,
 void					translate_hex_str_from_key(uint8_t *key, char *output,
 	size_t expected_size);
 e_des_operating_mode	parse_des(t_ssl_env *env, char **args);
+
+
+char*					get_password(t_ssl_env *env);
+
 
 uint8_t			*bootleg_pbkdf(char *password, char *salt,
 	size_t nb_desired_iters, size_t dk_len);

@@ -6,11 +6,13 @@
 #    By: fdexheim <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/10/26 14:02:22 by fdexheim          #+#    #+#              #
-#    Updated: 2021/12/10 10:02:24 by fdexheim         ###   ########.fr        #
+#    Updated: 2021/12/16 17:28:06 by fdexheim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = ft_ssl
+
+UNAME = $(shell uname)
 
 INCLUDES_PATH = ./inc/
 INCLUDE_LIBFT_PATH = ./libft/inc/
@@ -24,6 +26,7 @@ SRC_NAME = 	base64/parse_base64.c \
 			base64/process_block_base64.c \
 			base64/base64.c \
 			des/des.c \
+			des/password.c \
 			des/get_run_data.c \
 			des/subkeys.c \
 			des/parse_des.c \
@@ -51,6 +54,8 @@ SRC_NAME = 	base64/parse_base64.c \
 OBJ_PATH = ./obj/
 OBJ_NAME =	$(SRC_NAME:.c=.o)
 
+ADDLIB = 
+
 CC = gcc
 CC_FLAGS = -Wall -Werror -Wextra -Wuninitialized
 
@@ -75,7 +80,12 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 	$(CC) $(CC_FLAGS) -I $(INCLUDES_PATH) -o $@ -c $<
 
 $(NAME):	$(OBJ)
-	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH) -lbsd
+ifeq ($(UNAME),Linux)
+	$(ADDLIB) += -lbsd
+endif
+ifeq ($(UNAME),Darwin)
+endif
+	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH) $(ADDLIB)
 	@echo "\033[1;32;m[Compilation Successful]\033[0m"
 	@echo "\033[1;36;m$(NAME)\033[1;32;m ready to go !\033[0m"
 

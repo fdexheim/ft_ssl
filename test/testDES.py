@@ -66,22 +66,23 @@ def compare(mode, testfile, testflags):
     os.system(mydcmd)
 
     print("\n===============================\n")
-    print("[ENCRYPT] diff " + my + " VS " + ref)
+    print("[ENCRYPT] diff " + my + " (" + str(os.path.getsize(my))  + " bytes)   VS   " + ref + " (" + str(os.path.getsize(ref))  + " bytes)")
     os.system("diff " + my + " " + ref)
-    print("[DECRYPT] diff " + myd + " VS " + refd)
+    print("[DECRYPT] diff " + myd + " (" + str(os.path.getsize(myd))  + " bytes)   VS   " + refd + " (" + str(os.path.getsize(refd))  + " bytes)")
     os.system("diff " + myd + " " + refd)
 
     print("\n===============================\n")
 
-    print("cat my  (" + str(os.path.getsize(my)) + " bytes)")
-    os.system("cat " + my)
-    print("\ncat ref (" + str(os.path.getsize(ref)) + " bytes)")
-    os.system("cat " + ref)
-    print("\ncat myd (" + str(os.path.getsize(myd)) + " bytes)")
-    os.system("cat " + myd)
-    print("\ncat refd (" + str(os.path.getsize(refd)) + " bytes)")
-    os.system("cat " + refd)
-    print("");
+    if (testflags.find('c') != -1):
+        print("cat my  (" + str(os.path.getsize(my)) + " bytes)")
+        os.system("cat " + my)
+        print("\ncat ref (" + str(os.path.getsize(ref)) + " bytes)")
+        os.system("cat " + ref)
+        print("\ncat myd (" + str(os.path.getsize(myd)) + " bytes)")
+        os.system("cat " + myd)
+        print("\ncat refd (" + str(os.path.getsize(refd)) + " bytes)")
+        os.system("cat " + refd)
+        print("");
 
 #    os.system("rm " + my)
 #    os.system("rm " + myd)

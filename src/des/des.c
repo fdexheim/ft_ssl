@@ -61,7 +61,7 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	output->allocated_size = output->size;
 	if ((output->data = malloc(output->size)) == NULL)
 	{
-		ft_putstr("[Error] Bad malloc() in process_input_copy_des()\n");
+		ft_putstr("[Error] Bad malloc() in process_input_des()\n");
 		exit(EXIT_FAILURE);
 	}
 	if (ft_testbit(mode, DECRYPT_BIT) == false && ft_testbit(mode, ADD_SALT_BIT) == true)
@@ -71,9 +71,6 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	}
 
 	uint32_t nb_blocks = (input_copy->size - salt_offset_src) / block_size;
-//	printf("salt_offset_src = %ld salt_offset_dst = %ld\n", salt_offset_src, salt_offset_dst);
-//	printf("input_copy size = %ld, output size = %ld nb_blocks = %d\n", input_copy->size, output->size, nb_blocks);
-
 	// iteration on all blocks
 	for (size_t i = 0; i < nb_blocks; i++)
 	{
@@ -116,6 +113,7 @@ void						command_des(t_ssl_env *env, char **args)
 	t_des_run_data			*run_data;
 	t_des_subkeys			*subkeys;
 	e_des_operating_mode	mode;
+	char					*password = NULL;
 
 	mode = parse_des(env, args);
 	if (env->flags.d == true)
@@ -123,6 +121,15 @@ void						command_des(t_ssl_env *env, char **args)
 	if (env->flags.k == false || (env->flags.k == true && env->flags.p == true))
 		mode |= ADD_SALT;
 
+	if ((password = get_password(env)) == NULL)
+	{
+		ft_putstr("[Error] bad get_password() routine");
+		clean_data_struct(input);
+		clean_data_struct(output);
+		clean_data_struct(base64put);
+		return ;
+	}
+	
 	// INPUT
 	gather_full_input(input, env->flags.file_arg);
 	// case when input to decrypt was base64'd during encryption
@@ -131,14 +138,14 @@ void						command_des(t_ssl_env *env, char **args)
 		process_input_base64(input, base64put, env->flags.d);
 		input_ptr = base64put;
 	}
-
-	// run_data contains various essentials for encryption : salt, key, iv, etc.
-	if ((run_data = get_run_data(env, mode, input_ptr)) == NULL)
+	// run_data will contain various essentials for encryption : salt, key, iv
+	if ((run_data = get_run_data(env, mode, input_ptr, password)) == NULL)
 	{
 		ft_putstr("[Error] Bad DES run_data()\n");
 		clean_data_struct(input);
 		clean_data_struct(output);
 		clean_data_struct(base64put);
+		free(password);
 		return ;
 	}
 
@@ -161,4 +168,5 @@ void						command_des(t_ssl_env *env, char **args)
 	clean_data_struct(input);
 	clean_data_struct(output);
 	clean_data_struct(base64put);
+	free(password);
 }
