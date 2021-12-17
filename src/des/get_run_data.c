@@ -50,7 +50,7 @@ static t_des_run_data	*get_salt(t_ssl_env *env, t_des_run_data *ret,
 			return (run_data_error(ret, "[Error] Bad Salt\n"));
 	}
 	else if (ft_testbit(mode, DECRYPT_BIT) == true
-			&& (env->flags.p == true && env->flags.k == false))
+			&& (env->flags.p == true && env->flags.k == false)) // fishy condition
 	{
 		if (input->size < 24 || (ft_memcmp(input->data, "Salted__", 8)))
 			return (run_data_error(ret, "[Error] missing or badly formated salt\n"));
