@@ -46,7 +46,7 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 	size_t			salt_offset_dst = 0;
 	t_ssl_data		*input_copy = copy_ssl_data(input);
 
-	// handle padding and salt 
+	// handle padding and salt
 	if (ft_testbit(mode, DECRYPT_BIT) == false)
 	{
 		pad_buffer_des(input_copy);

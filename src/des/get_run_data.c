@@ -117,15 +117,10 @@ static void					append_passsalt(t_ssl_data *d, char *password,
 	size_t password_len, uint8_t *salt, size_t salt_len)
 {
 	size_t old_size = d->size;
-	d->size += password_len + salt_len;
-	d->data = bootleg_realloc(d->data, old_size, d->size);
-/*
-	ft_putstr("old_size : ");
-	ft_put_size_t(old_size);
-	ft_putstr(" new_size : ");
-	ft_put_size_t(d->size);
-	ft_putstr("\n");
-*/
+	size_t new_size = old_size + password_len + salt_len;
+	d->data = bootleg_realloc(d->data, old_size, new_size);
+	d->size = new_size;
+	d->allocated_size = new_size;
 
 	for (size_t j = 0; j < password_len; j++)
 		((char*)d->data)[old_size + j] = password[j];
@@ -140,13 +135,9 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 	t_des_run_data		*ret = NULL;
 	t_ssl_data			d0;
 	t_ssl_data			d1;
-	t_ssl_data			d2;
-	t_ssl_data			d3;
-	ft_bzero(&d0, sizeof(t_ssl_data));
-	ft_bzero(&d1, sizeof(t_ssl_data));
-	ft_bzero(&d2, sizeof(t_ssl_data));
-	ft_bzero(&d3, sizeof(t_ssl_data));
 	size_t key_len = 8 * sizeof(uint8_t);
+	size_t pw_len = ft_strlen(password);
+	size_t salt_len = sizeof(uint8_t) * 8;
 
 
 	void					(*hasher)(t_ssl_data *, t_ssl_data *);
@@ -161,62 +152,26 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
 		return (NULL);
 	ft_bzero(ret, sizeof(t_des_run_data));
-
+	ft_bzero(&d0, sizeof(t_ssl_data));
+	ft_bzero(&d1, sizeof(t_ssl_data));
 	if (get_salt(env, ret, mode, input) == NULL)
 		return (NULL);
-
-	size_t pw_len = ft_strlen(password);
-	size_t salt_len = sizeof(uint8_t) * 8;
 	append_passsalt(&d0, password, pw_len, ret->salt, salt_len);
 	hasher(&d0, &d1);
-
-
 	if (get_key(env, ret, d1.data) == NULL)
 		return NULL;
 	if (get_iv(env, ret, mode, password, d1.data + key_len) == NULL)
 		return NULL;
-
-/*
-	ft_putstr("password (str) : ");
-	ft_putstr(password);
-	ft_putstr("\npassword (key) : ");
-	print_hex_key((uint8_t *)password, pw_len);
-	ft_putstr("\nsalt           : ");
-	print_hex_key(ret->salt, salt_len);
-	ft_putstr("\n");
-*/
-
-	append_passsalt(&d1, password, pw_len, ret->salt, salt_len);
-	hasher(&d1, &d2);
-
-	append_passsalt(&d2, password, pw_len, ret->salt, salt_len);
-	hasher(&d2, &d3);
-
-	ft_putstr("\nd0 : ");
-	print_hex_key(d0.data, d0.size);
-	ft_putstr("\nd1 : ");
-	print_hex_key(d1.data, d1.size);
-	ft_putstr("\nd2 : ");
-	print_hex_key(d2.data, d2.size);
-	ft_putstr("\nd3 : ");
-	print_hex_key(d3.data, d3.size);
-	ft_putstr("\n");
-
 	data_soft_reset(&d0);
 	data_soft_reset(&d1);
-	data_soft_reset(&d2);
-	data_soft_reset(&d3);
-
-
 	ft_putstr("salt=");
 	print_hex_key((uint8_t *)ret->salt, 8);
 	ft_putstr("\nkey =");
 	print_hex_key(ret->keys, 8);
-//	if (ft_testbit(mode, DECRYPT_BIT) == false)
+	if (ft_testbit(mode, ECB_BIT) == false)
 	{
 		ft_putstr("\niv  =");
-		if (ret->iv)
-			print_hex_key((uint8_t *)ret->iv, 8);
+		print_hex_key((uint8_t *)ret->iv, 8);
 		ft_putstr("\n");
 	}
 	return (ret);

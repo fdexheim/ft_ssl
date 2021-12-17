@@ -34,7 +34,7 @@ t_ssl_env			*setup_env(int argc, char **argv)
 
 	if ((env = malloc(sizeof(t_ssl_env))) == NULL)
 	{
-		printf("[ERROR] Failed memory allocation\n");
+		ft_putstr("[ERROR] Failed memory allocation\n");
 		exit(EXIT_FAILURE);
 	}
 	ft_bzero(env, sizeof(t_ssl_env));

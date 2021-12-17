@@ -84,9 +84,4 @@ def compare(mode, testfile, testflags):
         os.system("cat " + refd)
         print("");
 
-#    os.system("rm " + my)
-#    os.system("rm " + myd)
-#    os.system("rm " + ref)
-#    os.system("rm " + refd)
-
 compare(sys.argv[1], sys.argv[2], sys.argv[3])

@@ -3,6 +3,8 @@
 
 //------------------------------------------------------------------------------
 // Custom implementation of PBKDF
+// Note : it is currently unused as it's not required to mimic openssl's
+// implementation.
 //------------------------------------------------------------------------------
 uint8_t			*bootleg_pbkdf(char *password, char *salt,
 	size_t nb_desired_iters, size_t dk_len)
@@ -24,14 +26,6 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 		((char*)out_ptr->data)[j] = password[j];
 	for (size_t j = 0; j < 8; j++)
 		((char*)out_ptr->data)[j + pw_len] = salt[j];
-/*	ft_putstr("password  : ");
-	print_hex_key((uint8_t *)password, ft_strlen(password));
-	ft_putstr("\nsalt      : ");
-	print_hex_key((uint8_t *)salt, 8);
-	ft_putstr("\npass+salt : ");
-	print_hex_key(out_ptr->data, pw_len + 8);
-	ft_putstr("\n");
-*/
 	for (size_t i = 0; i < nb_desired_iters; i++)
 	{
 		// 'swap' in and out each iter because we don't need previous ones
@@ -40,13 +34,6 @@ uint8_t			*bootleg_pbkdf(char *password, char *salt,
 		out_ptr = swap;
 		data_soft_reset(out_ptr);
 		process_input_sha256(in_ptr, out_ptr);
-/*
-		ft_putstr("in_ptr  ");
-		print_hex_key(in_ptr->data, in_ptr->size);
-		ft_putstr("\nout_ptr ");
-		print_hex_key(out_ptr->data, out_ptr->size);
-		ft_putstr("\n");
-*/
 	}
 	if ((ret_key = malloc(dk_len)) == NULL)
 	{

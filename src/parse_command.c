@@ -7,7 +7,9 @@ bool						check_nb_args_required(char **args, uint32_t nb_arg)
 	{
 		if (args[i] == NULL)
 		{
-			printf("Missing arguments for flag %s\n", args[0]);
+			ft_putstr("Missing arguments for flag");
+			ft_putstr(args[0]);
+			ft_putstr("\n");
 			return (false);
 		}
 	}
