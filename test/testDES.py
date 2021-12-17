@@ -84,4 +84,7 @@ def compare(mode, testfile, testflags):
         os.system("cat " + refd)
         print("");
 
-compare(sys.argv[1], sys.argv[2], sys.argv[3])
+if (len(sys.argv) > 3):
+    compare(sys.argv[1], sys.argv[2], sys.argv[3])
+else:
+    compare(sys.argv[1], sys.argv[2], "")

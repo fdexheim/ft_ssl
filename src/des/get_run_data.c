@@ -49,10 +49,9 @@ static t_des_run_data	*get_salt(t_ssl_env *env, t_des_run_data *ret,
 		if ((ret->salt = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
 			return (run_data_error(ret, "[Error] Bad Salt\n"));
 	}
-	else if (ft_testbit(mode, DECRYPT_BIT) == true)
+	else if (ft_testbit(mode, DECRYPT_BIT) == true
+			&& (env->flags.p == true && env->flags.k == false))
 	{
-		ft_putstr("input size : ");
-		ft_put_size_t(input->size);
 		if (input->size < 24 || (ft_memcmp(input->data, "Salted__", 8)))
 			return (run_data_error(ret, "[Error] missing or badly formated salt\n"));
 		if ((ret->salt = malloc(sizeof(uint8_t) * 8)) == NULL)
@@ -82,13 +81,14 @@ static t_des_run_data	*get_key(t_ssl_env *env, t_des_run_data *ret, uint8_t *der
 	{
 		if ((ret->keys = malloc(sizeof(uint8_t) * keys_len)) == NULL)
 			return (run_data_error(ret, "[Error] Bad get_key malloc \n"));
-		ft_memcpy(ret->keys , derived, keys_len);
+		ft_memcpy(ret->keys, derived, keys_len);
 	}
 	return (ret);
 }
 
 //------------------------------------------------------------------------------
-static t_des_run_data	*get_iv(t_ssl_env *env, t_des_run_data *ret, e_des_operating_mode mode, char *password, uint8_t *derived)
+static t_des_run_data	*get_iv(t_ssl_env *env, t_des_run_data *ret,
+		e_des_operating_mode mode, char *password, uint8_t *derived)
 {
 	size_t				iv_str_size = 16;
 	size_t				iv_len = 8;
@@ -138,7 +138,6 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 	size_t key_len = 8 * sizeof(uint8_t);
 	size_t pw_len = ft_strlen(password);
 	size_t salt_len = sizeof(uint8_t) * 8;
-
 
 	void					(*hasher)(t_ssl_data *, t_ssl_data *);
 	// adjust hashing fucntion for different dump configs at school
