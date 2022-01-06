@@ -145,7 +145,7 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 	#ifdef __APPLE__
 		hasher = process_input_md5;
 	#else
-		hasher = process_block_sha256;
+		hasher = process_input_sha256;
 	#endif
 
 	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
@@ -161,8 +161,6 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 		return NULL;
 	if (get_iv(env, ret, mode, password, d1.data + key_len) == NULL)
 		return NULL;
-	data_soft_reset(&d0);
-	data_soft_reset(&d1);
 	ft_putstr("salt=");
 	print_hex_key((uint8_t *)ret->salt, 8);
 	ft_putstr("\nkey =");
@@ -173,5 +171,9 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 		print_hex_key((uint8_t *)ret->iv, 8);
 		ft_putstr("\n");
 	}
+//	print_hex_key(d1.data, d1.size);
+//	ft_putstr("\n");
+	data_soft_reset(&d0);
+	data_soft_reset(&d1);
 	return (ret);
 }

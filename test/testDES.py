@@ -8,9 +8,9 @@ def compare(mode, testfile, testflags):
     refd = "refd"
 
     refcmd = "openssl " + mode + " -in " + testfile + " -out " + ref
-    refdcmd = "openssl " + mode + " -d -in " + ref + " -out " + refd
+    refdcmd = "openssl " + mode + " -d -in " + my + " -out " + refd
     mycmd = "./ft_ssl " + mode + " -i " + testfile + " -o " + my
-    mydcmd = "./ft_ssl " + mode + " -d -i " + my + " -o " + myd
+    mydcmd = "./ft_ssl " + mode + " -d -i " + ref + " -o " + myd
 
     key  = "133457799bbcdff1"
     iv   = "0000000000000001"
@@ -55,15 +55,17 @@ def compare(mode, testfile, testflags):
     print("\n======[ OPENSSL ENCRYPT ]======")
     print(refcmd)
     os.system(refcmd)
+    print("\n======[ FT_SSL  ENCRYPT ]======")
+    print(mycmd)
+    code = os.system(mycmd)
+    print("os code = " + str(code))
     print("\n======[ OPENSSL DECRYPT ]======")
     print(refdcmd)
     os.system(refdcmd)
-    print("\n======[ FT_SSL  ENCRYPT ]======")
-    print(mycmd)
-    os.system(mycmd)
     print("\n======[ FT_SSL  DECRYPT ]======")
     print(mydcmd)
-    os.system(mydcmd)
+    coded = os.system(mydcmd)
+    print("os code = " + str(coded))
 
     print("\n===============================\n")
     print("[ENCRYPT] diff " + my + " (" + str(os.path.getsize(my))  + " bytes)   VS   " + ref + " (" + str(os.path.getsize(ref))  + " bytes)")

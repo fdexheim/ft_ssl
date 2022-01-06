@@ -54,8 +54,6 @@ SRC_NAME = 	base64/parse_base64.c \
 OBJ_PATH = ./obj/
 OBJ_NAME =	$(SRC_NAME:.c=.o)
 
-ADDLIB = 
-
 CC = gcc
 CC_FLAGS = -Wall -Werror -Wextra -Wuninitialized
 
@@ -81,11 +79,12 @@ $(OBJ_PATH)%.o: $(SRC_PATH)%.c
 
 $(NAME):	$(OBJ)
 ifeq ($(UNAME),Linux)
-	$(ADDLIB) += -lbsd
+	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH) -lbsd
+else ifeq ($(UNAME),Darwin)
+	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH)
+else
+	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH)
 endif
-ifeq ($(UNAME),Darwin)
-endif
-	$(CC) $(CC_FLAGS) -o $@ $(OBJ) $(FULL_LIBFT_PATH) $(ADDLIB)
 	@echo "\033[1;32;m[Compilation Successful]\033[0m"
 	@echo "\033[1;36;m$(NAME)\033[1;32;m ready to go !\033[0m"
 
