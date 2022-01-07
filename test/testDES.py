@@ -58,20 +58,24 @@ def compare(mode, testfile, testflags):
     print("\n======[ FT_SSL  ENCRYPT ]======")
     print(mycmd)
     code = os.system(mycmd)
-    print("os code = " + str(code))
+    if (code != 0):
+        print("OS CODE IS SUS : " + str(code))
     print("\n======[ OPENSSL DECRYPT ]======")
     print(refdcmd)
     os.system(refdcmd)
     print("\n======[ FT_SSL  DECRYPT ]======")
     print(mydcmd)
     coded = os.system(mydcmd)
-    print("os code = " + str(coded))
+    if (coded != 0):
+        print("OS CODED IS SUS : " + str(coded))
 
     print("\n===============================\n")
     print("[ENCRYPT] diff " + my + " (" + str(os.path.getsize(my))  + " bytes)   VS   " + ref + " (" + str(os.path.getsize(ref))  + " bytes)")
     os.system("diff " + my + " " + ref)
     print("[DECRYPT] diff " + myd + " (" + str(os.path.getsize(myd))  + " bytes)   VS   " + refd + " (" + str(os.path.getsize(refd))  + " bytes)")
     os.system("diff " + myd + " " + refd)
+    print("[DECRYPT] diff " + myd + " (" + str(os.path.getsize(myd))  + " bytes)   VS   " + testfile + " (" + str(os.path.getsize(testfile))  + " bytes)")
+    os.system("diff " + myd + " " + testfile)
 
     print("\n===============================\n")
 

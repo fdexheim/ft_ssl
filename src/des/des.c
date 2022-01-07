@@ -18,6 +18,7 @@ static void			display_des(t_ssl_data *output, char *target)
 			return ;
 		}
 		write(fd, output->data, output->size);
+		close(fd);
 	}
 	else
 		write(1, output->data, output->size);
@@ -104,6 +105,17 @@ void				process_input_des(t_ssl_data *input, t_ssl_data *output,
 }
 
 //------------------------------------------------------------------------------
+static void						cleanup_command_des(char *msg,
+	t_ssl_data *input, t_ssl_data *output, t_ssl_data *base64put)
+{
+	if (msg != NULL)
+		ft_putstr(msg);
+	clean_data_struct(input);
+	clean_data_struct(output);
+	clean_data_struct(base64put);
+}
+
+//------------------------------------------------------------------------------
 void						command_des(t_ssl_env *env, char **args)
 {
 	t_ssl_data				*input = get_new_data_struct();
@@ -121,17 +133,26 @@ void						command_des(t_ssl_env *env, char **args)
 	if (env->flags.k == false || (env->flags.k == true && env->flags.p == true))
 		mode |= ADD_SALT;
 
+	// create empty output file if flag set because one is created by openssl
+	// even if subsequent checks fail because reasons
+	if (env->flags.o == true)
+	{
+		int fd = open(env->flags.file_arg_out, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		if (fd != -1)
+			close(fd);
+	}
 	if ((password = get_password(env)) == NULL)
 	{
-		ft_putstr("[Error] bad get_password() routine");
-		clean_data_struct(input);
-		clean_data_struct(output);
-		clean_data_struct(base64put);
+		cleanup_command_des("[Error] bad get_password() routine\n", input, output, base64put);
 		return ;
 	}
-	
 	// INPUT
-	gather_full_input(input, env->flags.file_arg);
+	if (gather_full_input(input, env->flags.file_arg) == false)
+	{
+		cleanup_command_des("[Error] Bad input gathering\n", input, output, base64put);
+		free(password);
+		return ;
+	}
 	// case when input to decrypt was base64'd during encryption
 	if (env->flags.a == true && env->flags.d == true)
 	{
@@ -141,19 +162,14 @@ void						command_des(t_ssl_env *env, char **args)
 	// run_data will contain various essentials for encryption : salt, key, iv
 	if ((run_data = get_run_data(env, mode, input_ptr, password)) == NULL)
 	{
-		ft_putstr("[Error] Bad DES run_data()\n");
-		clean_data_struct(input);
-		clean_data_struct(output);
-		clean_data_struct(base64put);
+		cleanup_command_des("[Error] Bad DES run_data()\n", input, output, base64put);
 		free(password);
 		return ;
 	}
-
 	// PROCESS
 	subkeys = allocate_subkeys();
 	calculate_subkeys(subkeys, run_data->keys);
 	process_input_des(input_ptr, output, run_data, subkeys, mode);
-
 	// OUTPUT
 	// case where encrypted output has to be base64'd before output
 	if (env->flags.a == true && env->flags.d == false)
@@ -165,8 +181,6 @@ void						command_des(t_ssl_env *env, char **args)
 		display_des(output, env->flags.file_arg_out);
 	free_run_data(run_data);
 	free_subkeys(subkeys);
-	clean_data_struct(input);
-	clean_data_struct(output);
-	clean_data_struct(base64put);
+	cleanup_command_des(NULL, input, output, base64put);
 	free(password);
 }

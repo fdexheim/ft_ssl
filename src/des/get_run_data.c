@@ -49,11 +49,13 @@ static t_des_run_data	*get_salt(t_ssl_env *env, t_des_run_data *ret,
 		if ((ret->salt = get_translated_hex_input(env->flags.s_arg, salt_str_size, "Salt")) == NULL)
 			return (run_data_error(ret, "[Error] Bad Salt\n"));
 	}
-	else if (ft_testbit(mode, DECRYPT_BIT) == true
-			&& (env->flags.p == true && env->flags.k == false)) // fishy condition
+	else if (ft_testbit(mode, DECRYPT_BIT) == true)
 	{
 		if (input->size < 24 || (ft_memcmp(input->data, "Salted__", 8)))
-			return (run_data_error(ret, "[Error] missing or badly formated salt\n"));
+		{
+			if (env->flags.k == false)
+				return (run_data_error(ret, "[Error] missing or badly formated salt\n"));
+		}
 		if ((ret->salt = malloc(sizeof(uint8_t) * 8)) == NULL)
 			return (run_data_error(ret, "[Error] Bad get_salt() malloc()\n"));
 		ft_memcpy(ret->salt, input->data + 8, 8);
@@ -147,6 +149,15 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 	#else
 		hasher = process_input_sha256;
 	#endif
+
+	if (env->flags.k == true && env->flags.p == false)
+	{
+		if (env->flags.v == false && ft_testbit(mode, ECB_BIT) == false)
+		{
+			ft_putstr("[Error] iv undefined\n");
+			return NULL;
+		}
+	}
 
 	if ((ret = malloc(sizeof(t_des_run_data))) == NULL)
 		return (NULL);

@@ -39,6 +39,7 @@ void				display_base64(t_ssl_data *output, char *file_output,
 			return ;
 		}
 		write_base64(fd, output->data, decrypt, output->size);
+		close(fd);
 	}
 	else
 	{
