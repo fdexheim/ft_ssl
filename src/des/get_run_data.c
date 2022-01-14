@@ -172,15 +172,18 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 		return NULL;
 	if (get_iv(env, ret, mode, password, d1.data + key_len) == NULL)
 		return NULL;
-	ft_putstr("salt=");
-	print_hex_key((uint8_t *)ret->salt, 8);
-	ft_putstr("\nkey =");
-	print_hex_key(ret->keys, 8);
-	if (ft_testbit(mode, ECB_BIT) == false)
+	if (env->flags.P == true)
 	{
-		ft_putstr("\niv  =");
-		print_hex_key((uint8_t *)ret->iv, 8);
-		ft_putstr("\n");
+		ft_putstr("salt=");
+		print_hex_key((uint8_t *)ret->salt, 8);
+		ft_putstr("\nkey =");
+		print_hex_key(ret->keys, 8);
+		if (ft_testbit(mode, ECB_BIT) == false)
+		{
+			ft_putstr("\niv  =");
+			print_hex_key((uint8_t *)ret->iv, 8);
+			ft_putstr("\n");
+		}
 	}
 //	print_hex_key(d1.data, d1.size);
 //	ft_putstr("\n");

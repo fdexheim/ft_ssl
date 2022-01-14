@@ -23,16 +23,25 @@ char*					get_password(t_ssl_env *env)
 	ft_bzero(buff_verif, buff_size);
 	if (env->flags.k == false)
 	{
-		readpassphrase("password? ", buff, buff_size, 0);
+		if (env->flags.d == true)
+			readpassphrase("Enter DES decryption password :", buff, buff_size, 0);
+		else
+			readpassphrase("Enter DES encryption password :", buff, buff_size, 0);
 		if (env->flags.d == false)
 		{
-			readpassphrase("verif password? ", buff_verif, buff_size, 0);
+			readpassphrase("Verifying - Enter DES encryption password :", buff_verif, buff_size, 0);
 			if (ft_strcmp(buff, buff_verif))
 			{
 				ft_putstr("[Error] password verification failed\n");
 				free(buff);
 				return (NULL);
 			}
+		}
+		if (ft_strlen(buff) == 0)
+		{
+			ft_putstr("[Error] Bad password read\n");
+			free(buff);
+			return (NULL);
 		}
 	}
 	return (buff);

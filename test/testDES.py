@@ -20,6 +20,8 @@ def compare(mode, testfile, testflags):
     if (testflags.find('P') != -1):
         refcmd += " -p "
         refdcmd += " -p "
+        mycmd += " -P "
+        mydcmd += " -P "
     if (testflags.find('k') != -1):
         refcmd += " -K " + key
         refdcmd += " -K " + key

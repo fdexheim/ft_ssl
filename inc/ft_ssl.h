@@ -19,6 +19,7 @@ typedef struct				s_ssl_flags
 	char					*k_arg;
 	bool					p;
 	char					*p_arg;
+	bool					P;
 	bool					q;
 	bool					r;
 	bool					s;

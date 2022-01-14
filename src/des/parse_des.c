@@ -7,6 +7,7 @@ static void					parse_flag_cluster(t_ssl_env *env, char *arg)
 	for (uint32_t i = 1; arg[i] != '\0'; i++)
 	{
 		env->flags.a = arg[i] == 'a' ? true : env->flags.a;
+		env->flags.P = arg[i] == 'P' ? true : env->flags.P;
 	}
 }
 
