@@ -79,6 +79,23 @@ static void					handle_flag_v(t_ssl_env *env, char **args)
 	env->flags.v_arg = args[1];
 }
 
+static void					handle_flag_help(t_ssl_env *env, char **args)
+{
+	(void)env;
+	(void)args;
+	ft_putstr("Usage: des [options]\nValid options are:\n");
+	ft_putstr("-e           encode (default behavior)\n");
+	ft_putstr("-d           decode\n");
+	ft_putstr("-p [val]     specify password \n");
+	ft_putstr("-k [hex]     specify Key\n");
+	ft_putstr("-s [hex]     specify Salt\n");
+	ft_putstr("-v [hex]     specify initialization vector\n");
+	ft_putstr("-i [file]    file to take input from \n");
+	ft_putstr("-o [file]    file to write output to \n");
+	ft_putstr("-a           input/output in base64 \n");
+	exit(EXIT_SUCCESS);
+}
+
 //------------------------------------------------------------------------------
 static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 {
@@ -91,6 +108,8 @@ static uint32_t				check_arg_flags(t_ssl_env *env, char **args)
 		{ "-d", 0, handle_flag_d },
 		{ "-e", 0, handle_flag_e },
 		{ "-v", 1, handle_flag_v },
+		{ "-help", 0, handle_flag_help },
+		{ "--help", 0, handle_flag_help },
 		{ NULL, 0, NULL }
 	};
 
