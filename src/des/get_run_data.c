@@ -178,9 +178,10 @@ t_des_run_data			*get_run_data(t_ssl_env *env, e_des_operating_mode mode,
 		print_hex_key((uint8_t *)ret->salt, 8);
 		ft_putstr("\nkey =");
 		print_hex_key(ret->keys, 8);
+		ft_putstr("\n");
 		if (ft_testbit(mode, ECB_BIT) == false)
 		{
-			ft_putstr("\niv  =");
+			ft_putstr("iv  =");
 			print_hex_key((uint8_t *)ret->iv, 8);
 			ft_putstr("\n");
 		}
